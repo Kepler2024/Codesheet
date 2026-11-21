@@ -1,0 +1,62 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAllSheets } from '../../lib/sheets';
+
+const sheets = await getAllSheets('zh');
+const sheetSummaries = sheets.map((s) => ({ id: s.id, name: s.name }));
+
+// User preference: Python, TypeScript, C++, Java, JavaScript in the first 5
+const PREFERRED_ORDER = [
+  'python',
+  'typescript',
+  'cpp',
+  'java',
+  'javascript',
+  'go',
+  'rust',
+  'csharp',
+  'kotlin',
+  'swift',
+];
+
+sheets.sort((a, b) => {
+  const idxA = PREFERRED_ORDER.indexOf(a.id);
+  const idxB = PREFERRED_ORDER.indexOf(b.id);
+  return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+});
+---
+
+<Layout
+  title="Codesheet — 编程语言速查表 (2026)"
+  description="2026 面向开发者的速查手册，快速上手一门新语言。一门语言一页纸，专为 LeetCode 刷题、快速上手与语法拾遗设计。覆盖核心语法、常用数据结构与易错陷阱，全部代码经由真实工具链验证。"
+  sheets={sheetSummaries}
+  lang="zh"
+>
+  <main class="page-container home-page-container">
+    <div class="home-content">
+      <section class="index-hero">
+        <h1 class="index-title">
+          2026 面向开发者的速查手册<br class="title-br" /> 快速上手一门新语言
+        </h1>
+
+        <p class="index-description">
+          一门语言一页纸，专为 LeetCode 刷题、快速上手与语法拾遗设计。<br class="desc-br" />
+          覆盖核心语法、常用数据结构与易错陷阱，全部代码经由真实工具链验证。
+        </p>
+      </section>
+
+      <section class="index-grid-section">
+        <div class="sheet-grid">
+          {sheets.map((sheet) => (
+            <a href={`/zh/${sheet.id}/`} class="lang-tile" aria-label={`${sheet.name} 速查表`}>
+              <div class="tile-icon-wrapper">
+                <img src={`/icons/${sheet.id}.svg`} alt="" class="tile-icon" width="42" height="42" loading="lazy" />
+              </div>
+              <h2 class="tile-name">{sheet.name}</h2>
+            </a>
+          ))}
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>

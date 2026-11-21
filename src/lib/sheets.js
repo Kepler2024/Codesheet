@@ -47,14 +47,21 @@ function escapeAttr(str) {
 }
 
 /**
- * Scan all sheets/*.md files, extract metadata, validate headers, and return parsed data.
+ * Scan sheets/*.md (or sheets_zh/*.md) files, extract metadata, validate headers, and return parsed data.
  */
-export async function getAllSheets() {
+export async function getAllSheets(lang = 'en') {
+  const dirName = lang === 'zh' ? 'sheets_zh' : 'sheets';
+  let targetDir = path.resolve(process.cwd(), dirName);
   let fileNames;
   try {
-    fileNames = await fs.readdir(SHEETS_DIR);
+    fileNames = await fs.readdir(targetDir);
   } catch (err) {
-    throw new Error(`Failed to read sheets directory at ${SHEETS_DIR}: ${err.message}`);
+    if (lang === 'zh') {
+      targetDir = SHEETS_DIR;
+      fileNames = await fs.readdir(SHEETS_DIR);
+    } else {
+      throw new Error(`Failed to read sheets directory at ${targetDir}: ${err.message}`);
+    }
   }
 
   const mdFiles = fileNames.filter((f) => f.endsWith('.md')).sort();
@@ -66,8 +73,8 @@ export async function getAllSheets() {
 
   for (const file of mdFiles) {
     const id = path.basename(file, '.md');
-    const fullPath = path.join(SHEETS_DIR, file);
-    const relPath = path.join('sheets', file);
+    const fullPath = path.join(targetDir, file);
+    const relPath = path.join(path.basename(targetDir), file);
 
     if (idMap.has(id)) {
       throw new Error(`Duplicate route ID "${id}" detected for files: ${relPath} and ${idMap.get(id)}`);
@@ -80,14 +87,16 @@ export async function getAllSheets() {
     // 1. Validate Level-1 heading
     const firstH1Index = tokens.findIndex((t) => t.type === 'heading' && t.depth === 1);
     if (firstH1Index === -1) {
-      throw new Error(`[${relPath}] File header does not conform to specification: missing level-1 heading ("# <Language> Cheat Sheet")`);
+      throw new Error(`[${relPath}] File header does not conform to specification: missing level-1 heading`);
     }
     const h1Token = tokens[firstH1Index];
     const h1Text = h1Token.text.trim();
-    if (!h1Text.endsWith(' Cheat Sheet')) {
-      throw new Error(`[${relPath}] File header does not conform to specification: level-1 heading must end with " Cheat Sheet", got "${h1Text}"`);
+    let name = h1Text;
+    if (h1Text.endsWith(' Cheat Sheet')) {
+      name = h1Text.replace(/ Cheat Sheet$/, '').trim();
+    } else if (h1Text.endsWith(' 速查表')) {
+      name = h1Text.replace(/ 速查表$/, '').trim();
     }
-    const name = h1Text.replace(/ Cheat Sheet$/, '').trim();
 
     // 2. Validate Blockquote immediately following H1 (ignoring spaces/whitespace tokens)
     let bqIndex = -1;
@@ -100,15 +109,17 @@ export async function getAllSheets() {
     }
 
     if (bqIndex === -1) {
-      throw new Error(`[${relPath}] File header does not conform to specification: missing required blockquote "> Written for <version>" after title`);
+      throw new Error(`[${relPath}] File header does not conform to specification: missing required blockquote after title`);
     }
 
     const bqToken = tokens[bqIndex];
     const bqRawText = bqToken.text.trim();
-    if (!bqRawText.startsWith('Written for ')) {
-      throw new Error(`[${relPath}] File header does not conform to specification: blockquote must start with "Written for ", got "${bqRawText}"`);
+    let version = bqRawText;
+    if (bqRawText.startsWith('Written for ')) {
+      version = bqRawText.replace(/^Written for\s+/, '').trim();
+    } else if (bqRawText.startsWith('针对 ')) {
+      version = bqRawText.replace(/^针对\s+/, '').replace(/\s*编写$/, '').trim();
     }
-    const version = bqRawText.replace(/^Written for\s+/, '').trim();
 
     // 3. Extract Headings (TOC) for H2 and H3
     const slugger = new GithubSlugger();
@@ -158,7 +169,7 @@ export async function getAllSheets() {
 /**
  * Render a single sheet's Markdown into HTML following all frontend rules.
  */
-export async function renderSheet(sheet) {
+export async function renderSheet(sheet, lang = 'en') {
   const highlighter = await getHighlighterInstance();
   const tokens = lexer(sheet.rawContent);
   const slugger = new GithubSlugger();
@@ -214,14 +225,17 @@ export async function renderSheet(sheet) {
       const isNocheck = tags.includes('nocheck');
 
       if (isStdin) {
+        const stdinBadge = lang === 'zh' ? '标准输入 (stdin)' : 'Standard Input (stdin)';
+        const copyLabel = lang === 'zh' ? '复制' : 'Copy';
+        const ariaLabel = lang === 'zh' ? '复制标准输入' : 'Copy stdin';
         return `
           <div class="code-card stdin-card">
             <div class="code-card-header stdin-header">
               <div class="code-card-left">
-                <span class="code-stdin-badge">Standard Input (stdin)</span>
+                <span class="code-stdin-badge">${stdinBadge}</span>
               </div>
-              <button class="copy-btn" data-code="${escapeAttr(rawCode)}" type="button" aria-label="Copy stdin">
-                <span class="copy-label">Copy</span>
+              <button class="copy-btn" data-code="${escapeAttr(rawCode)}" type="button" aria-label="${ariaLabel}">
+                <span class="copy-label">${copyLabel}</span>
               </button>
             </div>
             <pre class="stdin-code"><code>${escapeHtml(rawCode)}</code></pre>
@@ -259,6 +273,9 @@ export async function renderSheet(sheet) {
         .filter(Boolean)
         .join(' ');
 
+      const copyLabel = lang === 'zh' ? '复制' : 'Copy';
+      const ariaLabel = lang === 'zh' ? '复制代码' : 'Copy code';
+
       return `
         <div class="code-card">
           <div class="code-card-header">
@@ -266,8 +283,8 @@ export async function renderSheet(sheet) {
               <span class="code-lang-badge">${escapeHtml(primaryLang)}</span>
               ${flagsHtml}
             </div>
-            <button class="copy-btn" data-code="${escapeAttr(rawCode)}" type="button" aria-label="Copy code">
-              <span class="copy-label">Copy</span>
+            <button class="copy-btn" data-code="${escapeAttr(rawCode)}" type="button" aria-label="${ariaLabel}">
+              <span class="copy-label">${copyLabel}</span>
             </button>
           </div>
           <div class="code-card-body">
