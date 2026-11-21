@@ -7,68 +7,182 @@ Use this quick reference to learn or revisit Swift syntax and common data struct
 ## Running a Program
 
 ```swift
-// Top-level statements run in order in main.swift.
-print("hello") // => hello
+// A program is a file of statements that runs top to bottom; no main() is needed
+print("Hello, World!") // => Hello, World!
 ```
 
 ```bash
-swift main.swift
+swift hello.swift    # or compile first: swiftc hello.swift -o hello && ./hello
 ```
 
 ## Variables
 
 ```swift
-var steps = 1
-let limit: Int64 = 4_000_000_000
+// let declares a constant, var a variable. Prefer let.
+let limit = 100
+// limit = 200  // error: cannot assign to value: 'limit' is a 'let' constant
+var n = 0
+n = 5
+
+// The type is inferred from the value, and then it is fixed
+// n = "abc"  // error: cannot assign value of type 'String' to type 'Int'
+
+// Explicit types: Int (64-bit), Double, Bool, Character, String
 let ratio: Double = 0.5
-let ready: Bool = true
-let grade: Character = "A"
-steps += 1
-print(steps, limit, ratio, ready, grade) // => 2 4000000000 0.5 true A
-var label: String? = nil
-print(label?.count ?? -1) // => -1
-label = "go"
-if let label { print(label.count) } // => 2
+let done: Bool = false
+let letter: Character = "a"  // a Character also uses double quotes
+print(ratio, done, letter) // => 0.5 false a
+
+// "\(expression)" embeds a value in a string
+print("n is \(n)") // => n is 5
+
+// CAREFUL: numbers never convert implicitly; convert explicitly
+// let bad = n * ratio  // error: binary operator '*' cannot be applied to 'Int' and 'Double'
+print(Double(n) * ratio) // => 2.5
+
+// Swap with a tuple
 var a = 1, b = 2
-swap(&a, &b)
+(a, b) = (b, a)
 print(a, b) // => 2 1
+
+// Increment: Swift has no ++ or --
+n += 1
+// n++  // error: cannot find operator '++' in scope
+print(n) // => 6
+```
+
+```swift
+// Only an optional type (marked ?) can hold nil
+var name: String? = nil
+// var bad: String = nil  // error: 'nil' cannot initialize specified type 'String'
+
+// ?. calls only when the value isn't nil; ?? supplies a default
+print(name?.count ?? -1) // => -1
+
+// if let unwraps an optional when it has a value
+name = "swift"
+if let name {
+    print(name.count) // => 5
+}
+
+// ! force-unwraps, and crashes if the value is nil
+print(name!.uppercased()) // => SWIFT
+
+// CAREFUL: printing an optional shows the wrapper
+print(name as Any) // => Optional("swift")
+
+// guard let unwraps or leaves early, usually at the top of a function
+func firstChar(_ s: String?) -> Character {
+    guard let s, let c = s.first else { return "?" }
+    return c
+}
+print(firstChar(nil), firstChar("hi")) // => ? h
 ```
 
 ## If-statements
 
 ```swift
-let x = 7
-let label: String
-if x <= 0 {
-    label = "low"
-} else if x < 10 && x != 5 {
-    label = "middle"
+// No parentheses around the condition, and the braces are required
+var n = 1
+if n > 2 {
+    n -= 1
+} else if n == 2 {
+    n *= 2
 } else {
-    label = "high"
+    n += 2
 }
-print(label, x.isMultiple(of: 2) ? "even" : "odd") // => middle odd
-print(!(x < 1 || x > 9)) // => true
+print(n) // => 3
+
+// Logical operators: && (and), || (or), ! (not)
+let m = 5
+if n > 0 && m > 0 {
+    print("both") // => both
+}
+print(!true, true || false) // => false true
+
+// CAREFUL: a condition must be a Bool; 0 and nil aren't falsy
+// if n { }  // error: type 'Int' cannot be used as a boolean; test for '!= 0' instead
+
+// Ternary operator
+let parity = n % 2 == 0 ? "even" : "odd"
+print(parity) // => odd
+
+// switch must cover every case; cases don't fall through, and can match ranges
+switch n {
+case ..<0:
+    print("negative")
+case 0..<10:
+    print("small") // => small
+default:
+    print("large")
+}
+
+// if and switch can also be expressions
+let size = if n < 10 { "small" } else { "large" }
+print(size) // => small
 ```
 
 ## Loops
 
 ```swift
-var n = 2
-while n > 0 {
+var n = 0
+while n < 3 {
     print(n)
-    n -= 1
+    n += 1
 }
-// => 2 1
-for i in 0..<6 {
-    if i == 1 { continue }
-    if i == 4 { break }
+// => 0 1 2
+
+// i = 0 to 4: ..< excludes the end
+for i in 0..<5 {
+    print(i)
+}
+// => 0 1 2 3 4
+
+// i = 2 to 5: ... includes the end
+for i in 2...5 {
+    print(i)
+}
+// => 2 3 4 5
+
+// i = 5 down to 2
+for i in stride(from: 5, through: 2, by: -1) {
+    print(i)
+}
+// => 5 4 3 2
+
+for i in 0..<10 {
+    if i == 1 {
+        continue
+    }
+    if i == 4 {
+        break
+    }
     print(i)
 }
 // => 0 2 3
-for i in 2...4 { print(i) }
-// => 2 3 4
-for i in stride(from: 4, through: 2, by: -1) { print(i) }
-// => 4 3 2
+
+// CAREFUL: a range whose end is below its start crashes, e.g. 0..<n-1 when n is 0
+// for i in 0..<(-1) { }  // Fatal error: Range requires lowerBound <= upperBound
+
+// _ ignores the loop variable
+for _ in 0..<2 {
+    print("hi")
+}
+// => hi hi
+
+// A label lets break or continue act on an outer loop
+outer: for i in 0..<3 {
+    for j in 0..<3 {
+        if j > i {
+            continue outer
+        }
+        if i == 2 {
+            break outer
+        }
+        print(i, j)
+    }
+}
+// => 0 0 1 0 1 1
 ```
 
 ## Math
@@ -76,295 +190,660 @@ for i in stride(from: 4, through: 2, by: -1) { print(i) }
 ```swift
 import Foundation
 
-print(-3 / 2, -3.0 / 2.0, -10 % 3) // => -1 -1.5 -1
-print(floor(-1.5), ceil(-1.5), sqrt(9.0), pow(2.0, 5.0) as Double, abs(-5)) // => -2.0 -1.0 3.0 32.0 5
-print(Int32.min, Int32.max, Double.infinity) // => -2147483648 2147483647 inf
-// CAREFUL: ordinary integer overflow traps. &+ explicitly wraps.
-let top = Int32.max
-let (wrapped, overflow) = top.addingReportingOverflow(1)
-print(wrapped, overflow, top &+ 1) // => -2147483648 true -2147483648
+// / on two Ints is integer division
+print(5 / 2, 5.0 / 2) // => 2 2.5
+
+// CAREFUL: integer division truncates toward 0 (Python gives -2)
+print(-3 / 2) // => -1
+
+// CAREFUL: % takes the sign of the dividend (Python gives 2)
+print(-10 % 3) // => -1
+
+// A modulo that is never negative, e.g. for wrapping an index around
+print((-10 % 3 + 3) % 3) // => 2
+
+// floor, ceil, sqrt and pow come from Foundation and work on Double
+print(floor(-1.5), ceil(-1.5)) // => -2.0 -1.0
+let p: Double = pow(2, 10)
+print(sqrt(16.0), p, abs(-7)) // => 4.0 1024.0 7
+print(max(3, 8), min(3, 8, 1)) // => 8 1
+
+// Converting a Double to Int truncates toward 0
+print(Int(sqrt(17.0))) // => 4
+
+// Limits and infinity
+print(Int.max, Int.min) // => 9223372036854775807 -9223372036854775808
+print(Int32.max, Double.infinity) // => 2147483647 inf
+
+// CAREFUL: integer overflow crashes the program instead of wrapping
+var big = Int.max
+// big += 1  // crashes at runtime with an overflow trap
+// &+, &- and &* wrap around on purpose
+big = big &+ 1
+print(big) // => -9223372036854775808
 ```
 
 ## Output and Input
 
 ```swift
-// readLine removes the newline. Integers may span several lines.
-let title = readLine()!
-print(title) // => case one
-let count = Int(readLine()!)!
-var nums: [Int] = []
-while nums.count < count, let line = readLine() {
-    nums += line.split(whereSeparator: { $0.isWhitespace }).map { Int($0)! }
-}
-print(count, nums.prefix(count).reduce(0, +)) // => 3 9
+import Foundation
+
+// print separates items with a space and ends with a newline
+print("a", 1, true) // => a 1 true
+
+// Change the separator or the line ending
+print(1, 2, 3, separator: ",") // => 1,2,3
+print("same", terminator: " ")
+print("line") // => same line
+
+// Arrays print with brackets, and strings inside them get quotes
+let nums = [1, 2, 3]
+print(nums, ["a"]) // => [1, 2, 3] ["a"]
+
+// For plain output, convert to strings and join
+print(nums.map(String.init).joined(separator: " ")) // => 1 2 3
+
+// A fixed number of decimals
+print(String(format: "%.2f", 3.14159)) // => 3.14
+```
+
+```swift
+// readLine() returns one line without the newline, or nil at the end of input.
+// Int(text) returns nil if text isn't a number, hence the !
+let n = Int(readLine()!)!
+let nums = readLine()!.split(separator: " ").map { Int($0)! }
+print(n, nums.reduce(0, +)) // => 3 6
 ```
 
 ```text stdin
-case one
 3
-2 3
-4
+1 2 3
+```
+
+```swift
+// When numbers may be spread over lines, read until readLine() returns nil
+var tokens: [Int] = []
+while let line = readLine() {
+    tokens += line.split(separator: " ").map { Int($0)! }
+}
+let n = tokens[0]
+print(n, tokens[1...n].reduce(0, +)) // => 3 15
+```
+
+```text stdin
+3
+4 5
+6
 ```
 
 ## Arrays
 
 ```swift
-var nums = Array(repeating: 0, count: 3)
-nums[1] = 4
-nums.append(7)
-print(nums.removeLast(), nums.count, nums[1]) // => 7 3 4
-// Use last for an optional tail. Negative integer indices are outside the array.
-print(nums.indices.contains(-1), nums.last ?? -1) // => false 0
-let slice = nums[1..<3]
-// CAREFUL: ArraySlice keeps the original indices. Array(slice) starts at zero.
-print(slice.startIndex, slice[1], Array(slice).startIndex) // => 1 4 0
-for i in nums.indices { print(i) }
-// => 0 1 2
-for x in nums { print(x) }
-// => 0 4 0
-for (i, x) in nums.enumerated() { print(i, x) }
-// => 0 0 1 4 2 0
-for (x, w) in zip(nums, [2, 3]) { print(x * w) }
-// => 0 12
+// Arrays grow as needed; [Int] is the type
+var arr = [1, 2, 3]
+print(arr, arr.count) // => [1, 2, 3] 3
+
+// Use an array as a stack: append and removeLast are O(1)
+arr.append(4)
+print(arr.removeLast()) // => 4
+
+// Peek at the top: last is an optional, nil when the array is empty
+print(arr.last ?? -1) // => 3
+
+// insert and remove(at:) in the middle are O(n)
+arr.insert(7, at: 1)
+print(arr) // => [1, 7, 2, 3]
+arr.remove(at: 0)
+print(arr) // => [7, 2, 3]
+
+// An array of size n filled with a default value
+print(Array(repeating: 0, count: 5)) // => [0, 0, 0, 0, 0]
+
+// CAREFUL: there are no negative indexes, and an index out of range crashes
+// arr[-1]  // Fatal error: Index out of range
+print(arr[arr.count - 1]) // => 3
+
+// prefix, suffix and dropFirst take parts of an array
+let nums = [1, 2, 3, 4]
+print(nums.prefix(2), nums.suffix(2), nums.dropFirst()) // => [1, 2] [3, 4] [2, 3, 4]
+
+// CAREFUL: a slice keeps the original's indexes, so slice[0] would crash here;
+// wrap it in Array(...) to get indexes from 0
+let part = nums[1..<3]
+print(part, part.startIndex, Array(part)[0]) // => [2, 3] 1 2
+
+// contains and firstIndex are O(n); use a Set for fast lookups
+print(nums.contains(3), nums.firstIndex(of: 3)!) // => true 2
+
+// map, filter and reduce return new values
+print(nums.map { $0 * 2 }, nums.filter { $0 % 2 == 0 }, nums.reduce(0, +)) // => [2, 4, 6, 8] [2, 4] 10
+
+// CAREFUL: arrays are values: assigning one makes an independent copy
+var copy = nums
+copy[0] = 99
+print(nums[0], copy[0]) // => 1 99
 ```
 
 ```swift
-var nums = [4, 1, 3]
+let nums = [10, 20, 30]
+
+// By index
+for i in nums.indices {
+    print(nums[i])
+}
+// => 10 20 30
+
+// By value
+for n in nums {
+    print(n)
+}
+// => 10 20 30
+
+// Index and value together
+for (i, n) in nums.enumerated() {
+    print(i, n)
+}
+// => 0 10 1 20 2 30
+
+// Two arrays in lockstep; zip stops at the shorter one
+for (n, ch) in zip(nums, ["a", "b", "c"]) {
+    print(n, ch)
+}
+// => 10 a 20 b 30 c
+```
+
+```swift
+var nums = [5, 4, 7, 3, 8]
+
+// reverse and sort work in place
 nums.reverse()
-print(nums) // => [3, 1, 4]
+print(nums) // => [8, 3, 7, 4, 5]
 nums.sort()
-print(nums) // => [1, 3, 4]
+print(nums) // => [3, 4, 5, 7, 8]
 nums.sort(by: >)
-print(nums) // => [4, 3, 1]
-print(["four", "a", "to"].sorted { $0.count < $1.count }.joined(separator: " ")) // => a to four
-// CAREFUL: arrays have value semantics. Changing a row of Ints changes that row alone.
-var grid = Array(repeating: Array(repeating: 0, count: 3), count: 2)
-grid[0][0] = 7
-var copy = grid
-copy[0][0] = 9
-print(grid[0][0], grid[1][0], copy[0][0]) // => 7 0 9
+print(nums) // => [8, 7, 5, 4, 3]
+
+// sorted() returns a new array and leaves the original alone
+let words = ["bob", "alice", "jane", "doe"]
+print(words.sorted(), words[0]) // => ["alice", "bob", "doe", "jane"] bob
+
+// CAREFUL: reversed() returns a lazy view; wrap it in Array(...)
+print(words.reversed()) // => ReversedCollection<Array<String>>(_base: ["bob", "alice", "jane", "doe"])
+print(Array(words.reversed())) // => ["doe", "jane", "alice", "bob"]
+
+// Custom order: a closure that returns true when $0 goes before $1 (by length, then alphabetically)
+print(words.sorted { ($0.count, $0) < ($1.count, $1) }) // => ["bob", "doe", "jane", "alice"]
+
+// Sort pairs by their second element
+var pairs = [[1, 3], [2, 1], [3, 2]]
+pairs.sort { $0[1] < $1[1] }
+print(pairs) // => [[2, 1], [3, 2], [1, 3]]
+```
+
+```swift
+// 2-D array with 3 rows and 4 columns
+var grid = Array(repeating: Array(repeating: 0, count: 4), count: 3)
+grid[0][0] = 1
+print(grid) // => [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+print(grid.count, grid[0].count) // => 3 4
+
+// Because arrays are values, each row is independent: there's no shared-row trap,
+// and a saved backtracking path doesn't change later either
+var path = [1, 2]
+var res: [[Int]] = []
+res.append(path)
+path[0] = 9
+print(res) // => [[1, 2]]
 ```
 
 ## Strings
 
 ```swift
-// CAREFUL: String indices are String.Index. Characters can span multiple Unicode scalars.
-var s = "a🐈b"
-let cat = s.index(after: s.startIndex)
-print(s[cat], s[cat...], s.count, s.utf8.count) // => 🐈 🐈b 3 6
-s.replaceSubrange(cat...cat, with: "x")
-print(s + "!") // => axb!
-// Join pieces once, or append into a single mutable string.
-var pieces: [String] = []
-for ch in "code" { pieces.append(ch.uppercased()) }
-print(pieces.joined()) // => CODE
-print(Int("41")! + 1, String(41) + "2") // => 42 412
-print(Unicode.Scalar("a").value, Character(Unicode.Scalar(98)!)) // => 97 b
-print("one  two".split(whereSeparator: { $0.isWhitespace }).joined(separator: "-")) // => one-two
-print("ant" < "bee") // => true
+let s = "abc"
+
+// CAREFUL: a String can't be indexed with an Int
+// s[0]  // error: 'subscript(_:)' is unavailable: cannot subscript String with an Int
+
+// The usual LeetCode approach: convert to [Character] once, then index freely
+let chars = Array(s)
+print(chars[0], chars[chars.count - 1]) // => a c
+
+// first and last are optional Characters
+print(s.first!, s.last!) // => a c
+
+// Substrings use String.Index values
+let i = s.index(s.startIndex, offsetBy: 1)
+print(s[i...], s.prefix(2), s.dropFirst()) // => bc ab bc
+
+// A var String can change; += and append are efficient
+var t = "ab"
+t += "c"
+t.append("d")
+print(t) // => abcd
+
+// String <-> number; Int(text) returns nil for bad input
+print(Int("123")! + 1, String(123) + "4") // => 124 1234
+print(Int("12a") == nil) // => true
+
+// Character <-> code: asciiValue is a UInt8? (nil for non-ASCII)
+let c: Character = "c"
+print(c.asciiValue!, Character(UnicodeScalar(UInt8(98)))) // => 99 b
+
+// A letter's index into a 26-element array
+print(Int(c.asciiValue! - Character("a").asciiValue!)) // => 2
+
+// split drops empty pieces by default, unlike most languages
+let words = "the quick  brown fox".split(separator: " ")
+print(words.count) // => 4
+print(words.joined(separator: "-")) // => the-quick-brown-fox
+
+// Comparison with == and < is lexicographic
+print("apple" < "banana", "a" == "a") // => true true
+
+print(String(s.reversed()), s.contains("bc"), s.count) // => cba true 3
+print(c.isLetter, Character("7").isNumber, s.uppercased()) // => true true ABC
 ```
 
 ## Queues
 
 ```swift
-// The standard library has no deque. LeetCode includes Deque from Swift Collections.
-// Keep the front at head. When full, copy elements in logical order into a larger ring.
-struct RingDeque<Element> {
-    private var slots: [Element?] = [nil]
+// Swift has no queue or deque in the standard library. CAREFUL: removeFirst() is O(n).
+// For BFS, read from a moving head index instead
+var queue = [1, 2, 3]
+var head = 0
+while head < queue.count {
+    let node = queue[head]
+    head += 1
+    print(node)
+}
+// => 1 2 3
+
+// Or go level by level, building the next level as a new array.
+// (Here node n has children 2n and 2n+1, like a heap-shaped tree.)
+var level = [1]
+var depth = 0
+while !level.isEmpty {
+    var next: [Int] = []
+    for node in level where node < 4 {
+        next += [node * 2, node * 2 + 1]
+    }
+    print(depth, level)
+    level = next
+    depth += 1
+}
+// => 0 [1] 1 [2, 3] 2 [4, 5, 6, 7]
+```
+
+```swift
+// When you need a real deque, a ring buffer is O(1) at both ends.
+// (LeetCode also provides Deque from the swift-collections package.)
+struct Deque<T> {
+    private var slots: [T?] = Array(repeating: nil, count: 8)
     private var head = 0
     private(set) var count = 0
 
-    private func index(_ offset: Int) -> Int { (head + offset) % slots.count }
+    // Position of the i-th element in the ring
+    private func slot(_ i: Int) -> Int { (head + i) % slots.count }
 
-    private mutating func reserveSlot() {
+    // Double the capacity when full, copying elements in order
+    private mutating func growIfFull() {
         guard count == slots.count else { return }
-        var grown = [Element?](repeating: nil, count: slots.count * 2)
-        for i in 0..<count { grown[i] = slots[index(i)] }
-        slots = grown
+        slots = (0..<count).map { slots[slot($0)] } + Array(repeating: nil, count: count)
         head = 0
     }
-    var first: Element? { count == 0 ? nil : slots[head] }
-    var last: Element? { count == 0 ? nil : slots[index(count - 1)] }
 
-    mutating func prepend(_ x: Element) {
-        reserveSlot()
-        head = (head + slots.count - 1) % slots.count
+    var first: T? { count == 0 ? nil : slots[head] }
+    var last: T? { count == 0 ? nil : slots[slot(count - 1)] }
+
+    mutating func append(_ x: T) {
+        growIfFull()
+        slots[slot(count)] = x
+        count += 1
+    }
+
+    mutating func prepend(_ x: T) {
+        growIfFull()
+        head = (head - 1 + slots.count) % slots.count
         slots[head] = x
         count += 1
     }
-    mutating func append(_ x: Element) {
-        reserveSlot()
-        slots[index(count)] = x
-        count += 1
-    }
-    mutating func popFirst() -> Element? {
-        guard count > 0 else { return nil }
-        let x = slots[head]
+
+    mutating func popFirst() -> T? {
+        guard let x = first else { return nil }
         slots[head] = nil
-        head = index(1)
+        head = slot(1)
         count -= 1
         return x
     }
-    mutating func popLast() -> Element? {
-        guard count > 0 else { return nil }
+
+    mutating func popLast() -> T? {
+        guard let x = last else { return nil }
+        slots[slot(count - 1)] = nil
         count -= 1
-        let i = index(count)
-        let x = slots[i]
-        slots[i] = nil
         return x
     }
 }
 
-var q = RingDeque<Int>()
-q.append(2)
-q.prepend(1)
-q.append(3)
-print(q.first!, q.last!, q.count) // => 1 3 3
-print(q.popFirst()!, q.popLast()!, q.popFirst()!, q.popLast() == nil) // => 1 3 2 true
+var dq = Deque<Int>()
+dq.append(1)
+dq.append(2)
+dq.prepend(0)
+print(dq.first!, dq.last!, dq.count) // => 0 2 3
+print(dq.popFirst()!, dq.popLast()!, dq.count) // => 0 2 1
 ```
 
 ## HashSets
 
 ```swift
-var seen = Set([2, 3, 2])
-seen.insert(5)
-seen.remove(3)
-print(seen.contains(2), seen.count) // => true 2
-for x in seen.sorted() { print(x) }
-// => 2 5
+var seen = Set<Int>()
+seen.insert(1)
+seen.insert(2)
+
+// insert returns a tuple; inserted is false if the item was already there
+print(seen.insert(2).inserted) // => false
+print(seen.count) // => 2
+
+print(seen.contains(1), seen.contains(3)) // => true false
+
+// remove returns the removed item, or nil if it was missing
+print(seen.remove(2) as Any, seen.remove(42) as Any) // => Optional(2) nil
+
+// Build from an array
+let set = Set([3, 1, 3, 2])
+
+// CAREFUL: a Set's order is random and changes between runs; sort when order matters
+print(set.sorted()) // => [1, 2, 3]
+
+// union, intersection and subtracting return new sets
+let a: Set = [1, 2, 3]
+let b: Set = [2, 3, 4]
+print(a.union(b).sorted(), a.intersection(b).sorted(), a.subtracting(b).sorted()) // => [1, 2, 3, 4] [2, 3] [1]
 ```
 
 ## HashMaps
 
 ```swift
+// [Key: Value] is the dictionary type; [:] is an empty dictionary
+var scores: [String: Int] = [:]
+scores["alice"] = 88
+scores["bob"] = 77
+print(scores.count) // => 2
+
+scores["alice"] = 80
+
+// CAREFUL: reading a key gives an optional, nil if the key is missing
+print(scores["alice"]!, scores["zoe"] ?? 0) // => 80 0
+
+// A default value can also go in the subscript
+print(scores["zoe", default: 0]) // => 0
+
+// Contains key
+print(scores["alice"] != nil) // => true
+
+// Assigning nil removes a key
+scores["alice"] = nil
+print(scores.count, scores["alice"] == nil) // => 1 true
+```
+
+```swift
+let scores = ["alice": 90, "bob": 70]
+
+// CAREFUL: dictionary order is random and changes between runs; sort the keys
+for key in scores.keys.sorted() {
+    print(key, scores[key]!)
+}
+// => alice 90 bob 70
+
+print(scores.values.sorted()) // => [70, 90]
+
+// Pairs sorted by key; each pair destructures into (key, value)
+for (key, value) in scores.sorted(by: { $0.key < $1.key }) {
+    print(key, value)
+}
+// => alice 90 bob 70
+
+// Counting: += on the default subscript creates the key at 0 first
 var count: [Character: Int] = [:]
-count["x"] = 4
-count["x"] = 5
-print(count["x"] ?? 0, count.keys.contains("x")) // => 5 true
-count.removeValue(forKey: "x")
-for ch in "banana" { count[ch, default: 0] += 1 }
-print(count.count, count["a"] ?? 0) // => 3 3
-for k in count.keys.sorted() { print(k) }
-// => a b n
-for v in count.values.sorted() { print(v) }
-// => 1 2 3
-for (k, v) in count.sorted(by: { $0.key < $1.key }) { print(k, v) }
-// => a 3 b 1 n 2
-var copy = count
-copy["a"] = 9
-print(count["a"]!, copy["a"]!) // => 3 9
+for ch in "banana" {
+    count[ch, default: 0] += 1
+}
+print(count["a"]!, count["n"]!) // => 3 2
+
+// Grouping works the same way
+var groups: [String: [String]] = [:]
+for word in ["eat", "tea", "tan"] {
+    groups[String(word.sorted()), default: []].append(word)
+}
+print(groups["aet"]!) // => ["eat", "tea"]
 ```
 
 ## Tuples
 
 ```swift
-func bounds(_ nums: [Int]) -> (lo: Int, hi: Int) {
+// A tuple groups a few values; the elements can have names
+func minMax(_ nums: [Int]) -> (min: Int, max: Int) {
     (nums.min()!, nums.max()!)
 }
-let (lo, hi) = bounds([4, 1, 7])
-print(lo, hi) // => 1 7
 
-// A Swift 6.1 tuple cannot conform to Hashable. A struct synthesizes it for these fields.
-struct Cell: Hashable { let row: Int; let col: Int }
-let distance = [Cell(row: 2, col: 3): 5]
-print(distance[Cell(row: 2, col: 3)]!) // => 5
+// Destructure it, or keep it and use the names or positions
+let (lo, hi) = minMax([3, 1, 4])
+print(lo, hi) // => 1 4
+let r = minMax([5, 9])
+print(r.min, r.1) // => 5 9
+
+// Tuples compare element by element
+print((1, 2) < (1, 3), (1, 2) == (1, 2)) // => true true
+
+// CAREFUL: tuples aren't Hashable, so they can't be Set items or Dictionary keys
+// var visited: Set<(Int, Int)> = []  // error: type '(Int, Int)' does not conform to protocol 'Hashable'
+
+// Use a small Hashable struct instead (Swift writes the hashing for you)
+struct Cell: Hashable {
+    let r: Int
+    let c: Int
+}
+let visited: Set<Cell> = [Cell(r: 0, c: 1)]
+print(visited.contains(Cell(r: 0, c: 1))) // => true
+
+// Arrays are Hashable, so [Int] keys also work
+let dist: [[Int]: Int] = [[0, 1]: 1]
+print(dist[[0, 1]]!) // => 1
 ```
 
 ## Heaps
 
 ```swift
-// The standard library has no heap. LeetCode includes Heap from Swift Collections.
-// before(a, b) chooses which item belongs closer to the root.
-struct BinaryHeap<Element> {
-    private var items: [Element]
-    private let before: (Element, Element) -> Bool
-    var count: Int { items.count }
-    var first: Element? { items.first }
+// Swift has no heap in the standard library. (LeetCode also provides Heap from the
+// swift-collections package; elsewhere, write a small one like this.)
+// areSorted(a, b) is true when a should come out before b: < gives a min-heap.
+struct Heap<T> {
+    private var items: [T] = []
+    private let areSorted: (T, T) -> Bool
 
-    init(_ values: [Element], by before: @escaping (Element, Element) -> Bool) {
-        items = values
-        self.before = before
-        for i in (0..<(items.count / 2)).reversed() { siftDown(i) }
+    init(_ areSorted: @escaping (T, T) -> Bool) {
+        self.areSorted = areSorted
     }
-    private mutating func siftDown(_ start: Int) {
-        var i = start
-        while 2 * i + 1 < items.count {
-            var child = 2 * i + 1
-            if child + 1 < items.count && before(items[child + 1], items[child]) {
-                child += 1
-            }
-            if !before(items[child], items[i]) { break }
-            items.swapAt(i, child)
-            i = child
-        }
-    }
-    mutating func push(_ x: Element) {
+
+    var count: Int { items.count }
+    var isEmpty: Bool { items.isEmpty }
+    var peek: T? { items.first }
+
+    mutating func push(_ x: T) {
         items.append(x)
+        // Sift up: swap with the parent while the new item should come out first
         var i = items.count - 1
-        while i > 0 {
-            let parent = (i - 1) / 2
-            if !before(items[i], items[parent]) { break }
-            items.swapAt(i, parent)
-            i = parent
+        while i > 0 && areSorted(items[i], items[(i - 1) / 2]) {
+            items.swapAt(i, (i - 1) / 2)
+            i = (i - 1) / 2
         }
     }
-    mutating func pop() -> Element? {
+
+    mutating func pop() -> T? {
         guard !items.isEmpty else { return nil }
         items.swapAt(0, items.count - 1)
-        let root = items.removeLast()
-        if !items.isEmpty { siftDown(0) }
-        return root
+        let top = items.removeLast()
+        // Sift down: swap with the child that should come out first
+        var i = 0
+        while true {
+            let left = 2 * i + 1, right = left + 1
+            var best = i
+            if left < items.count && areSorted(items[left], items[best]) { best = left }
+            if right < items.count && areSorted(items[right], items[best]) { best = right }
+            if best == i { break }
+            items.swapAt(i, best)
+            i = best
+        }
+        return top
     }
 }
 
-var smallest = BinaryHeap([5, 2, 3], by: <)
-smallest.push(1)
-print(smallest.first!, smallest.pop()!, smallest.count) // => 1 1 3
-var largest = BinaryHeap([5, 2, 3], by: >)
-print(largest.pop()!) // => 5
-var jobs = BinaryHeap([("ship", 3), ("plan", 1)], by: { $0.1 < $1.1 })
-print(jobs.pop()!.0) // => plan
+// Min-heap
+var minHeap = Heap<Int>(<)
+for x in [5, 1, 8, 3, 2] {
+    minHeap.push(x)
+}
+print(minHeap.peek!, minHeap.count) // => 1 5
+while let x = minHeap.pop() {
+    print(x)
+}
+// => 1 2 3 5 8
+
+// Max-heap
+var maxHeap = Heap<Int>(>)
+[3, 1, 5].forEach { maxHeap.push($0) }
+print(maxHeap.pop()!) // => 5
+
+// Custom priority: (priority, name) pairs ordered by priority
+var tasks = Heap<(Int, String)> { $0.0 < $1.0 }
+tasks.push((2, "write"))
+tasks.push((1, "plan"))
+tasks.push((3, "ship"))
+while let (priority, name) = tasks.pop() {
+    print(priority, name)
+}
+// => 1 plan 2 write 3 ship
 ```
 
 ## Functions
 
 ```swift
-func edited(_ nums: [Int]) -> [Int] {
-    var copy = nums
-    copy[0] = 7
-    return copy
+// Callers write each parameter's label; _ means "no label"
+func multiply(_ n: Int, by m: Int) -> Int {
+    return n * m
 }
-func replace(_ nums: inout [Int]) { nums = [9] }
-var nums = [1, 2]
-print(edited(nums), nums) // => [7, 2] [1, 2]
-replace(&nums)
-print(nums) // => [9]
+print(multiply(3, by: 4)) // => 12
 
-func makeCounter() -> (Int) -> Int {
-    var total = 0
-    func add(_ step: Int) -> Int {
-        total += step
-        return total
-    }
-    return add
+// Default values; a one-expression body can leave out return
+func greet(_ name: String, greeting: String = "Hello") -> String {
+    "\(greeting), \(name)!"
 }
-let add = makeCounter()
-let square: (Int) -> Int = { $0 * $0 }
-print(add(3), add(4), square(5)) // => 3 7 25
+print(greet("Ann")) // => Hello, Ann!
+print(greet("Ann", greeting: "Hi")) // => Hi, Ann!
+
+// A closure is { (parameters) in body }; $0, $1 are shorthand parameter names
+let square = { (x: Int) in x * x }
+let add: (Int, Int) -> Int = { $0 + $1 }
+print(square(5), add(2, 3)) // => 25 5
+
+// When the last argument is a closure, it can go after the parentheses
+print([1, 2, 3].map { $0 * 10 }) // => [10, 20, 30]
+
+// Nested functions can read and change the variables around them,
+// which makes them handy as recursive DFS helpers
+func sumDown(_ n: Int) -> Int {
+    var total = 0
+    func dfs(_ k: Int) {
+        if k == 0 {
+            return
+        }
+        total += k
+        dfs(k - 1)
+    }
+    dfs(n)
+    return total
+}
+print(sumDown(3)) // => 6
+```
+
+```swift
+// Parameters are constants, and arrays are values, so a function gets its own copy
+func setFirst(_ arr: [Int]) -> [Int] {
+    var arr = arr
+    arr[0] = 99
+    return arr
+}
+var nums = [1, 2]
+print(setFirst(nums), nums) // => [99, 2] [1, 2]
+
+// inout lets a function change the caller's variable; the caller writes &
+func double(_ arr: inout [Int]) {
+    for i in arr.indices {
+        arr[i] *= 2
+    }
+}
+double(&nums)
+print(nums) // => [2, 4]
+
+// Class instances are references, so a function can change their properties
+class Box {
+    var value = 0
+}
+func fill(_ box: Box) {
+    box.value = 7
+}
+let box = Box()
+fill(box)
+print(box.value) // => 7
 ```
 
 ## Classes
 
 ```swift
-class Point {
-    let x: Int, y: Int
-    init(_ x: Int, _ y: Int) { self.x = x; self.y = y }
-    func distSq() -> Int { x * x + y * y }
+// A class is a reference type; it needs an init that sets every property
+class Point: CustomStringConvertible, Comparable {
+    var x: Int
+    var y: Int
+
+    init(_ x: Int, _ y: Int) {
+        self.x = x
+        self.y = y
+    }
+
+    func distSq() -> Int {
+        x * x + y * y
+    }
+
+    // Optional: CustomStringConvertible controls how it prints
+    var description: String { "Point(\(x), \(y))" }
+
+    // Optional: Comparable (< and ==) lets you sort Points
+    static func < (a: Point, b: Point) -> Bool { a.distSq() < b.distSq() }
+    static func == (a: Point, b: Point) -> Bool { a.x == b.x && a.y == b.y }
 }
-print(Point(3, 4).distSq()) // => 25
+
+let p = Point(3, 4)
+print(p.distSq()) // => 25
+print(p) // => Point(3, 4)
+print([Point(2, 2), Point(1, 0)].sorted()) // => [Point(1, 0), Point(2, 2)]
+
+// A struct is a value type: it gets a memberwise init for free and is copied on assignment
+struct Cell {
+    var r: Int
+    var c: Int
+}
+let c1 = Cell(r: 1, c: 2)
+var c2 = c1
+c2.r = 9
+print(c1.r, c2.r) // => 1 9
+
+// CAREFUL: assigning a class instance copies the reference, not the object
+let q = p
+q.x = 0
+print(p.x) // => 0
 ```
 
 ```swift
+// LeetCode's linked list node for Swift
 public class ListNode {
     public var val: Int
     public var next: ListNode?
@@ -373,6 +852,20 @@ public class ListNode {
     public init(_ val: Int, _ next: ListNode?) { self.val = val; self.next = next; }
 }
 
+// 1 -> 2 -> 3
+let head = ListNode(1, ListNode(2, ListNode(3)))
+
+// Walk the list until the end (nil); while let unwraps each node
+var node: ListNode? = head
+while let current = node {
+    print(current.val)
+    node = current.next
+}
+// => 1 2 3
+```
+
+```swift
+// LeetCode's binary tree node for Swift
 public class TreeNode {
     public var val: Int
     public var left: TreeNode?
@@ -385,20 +878,29 @@ public class TreeNode {
         self.right = right
     }
 }
-let head = ListNode(1, ListNode(2))
-var node: ListNode? = head
-while let current = node {
-    print(current.val)
-    node = current.next
+
+// On LeetCode you complete a method of class Solution
+class Solution {
+    func maxDepth(_ root: TreeNode?) -> Int {
+        guard let root else { return 0 }
+        return 1 + max(maxDepth(root.left), maxDepth(root.right))
+    }
 }
-// => 1 2
+
+// In-order traversal; a missing child is nil
 func inorder(_ node: TreeNode?) {
     guard let node else { return }
     inorder(node.left)
     print(node.val)
     inorder(node.right)
 }
+
+//     2
+//    / \
+//   1   3
 let root = TreeNode(2, TreeNode(1), TreeNode(3))
+
 inorder(root) // => 1 2 3
-print(root.left?.right == nil) // => true
+print(root.left?.left == nil) // => true
+print(Solution().maxDepth(root)) // => 2
 ```
