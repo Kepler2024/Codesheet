@@ -1,0 +1,17 @@
+# Original NeetCode cheat sheet, kept locally as reference only (not ours to publish)
+reference/
+
+# OS / editor
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Checker scratch output
+.check/
+
+# Node & Astro
+node_modules/
+dist/
+.astro/
