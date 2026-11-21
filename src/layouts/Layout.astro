@@ -1,0 +1,177 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface SheetSummary {
+  id: string;
+  name: string;
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  sheets?: SheetSummary[];
+  currentId?: string;
+}
+
+const {
+  title,
+  description = 'Cheat sheets for picking up a new programming language fast: one page per language, code first.',
+  sheets = [],
+  currentId,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23007acc'/><text x='50' y='68' font-size='50' font-family='monospace' font-weight='bold' fill='white' text-anchor='middle'>&lt;/&gt;</text></svg>" />
+
+    <!-- Prevent flash of wrong theme -->
+    <script is:inline>
+      (function() {
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <Header sheets={sheets} currentId={currentId} />
+    <slot />
+    <Footer />
+    <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+    <script is:inline>
+      // Theme toggle handler
+      const themeBtn = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
+
+      function updateThemeIcons(theme) {
+        if (sunIcon && moonIcon) {
+          if (theme === 'dark') {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+          } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+          }
+        }
+      }
+
+      const initialTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      updateThemeIcons(initialTheme);
+
+      if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('theme', next);
+          updateThemeIcons(next);
+        });
+      }
+
+      // Toast notification helper
+      let toastTimer = null;
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2600);
+      }
+
+      // Website language selector handler
+      const siteLangSelect = document.getElementById('site-lang-select');
+      if (siteLangSelect) {
+        const savedLang = localStorage.getItem('site_lang') || 'en';
+        siteLangSelect.value = savedLang;
+
+        siteLangSelect.addEventListener('change', (e) => {
+          const val = e.target.value;
+          localStorage.setItem('site_lang', val);
+          if (val === 'zh-CN') {
+            showToast('🇨🇳 简体中文界面正在建设中，敬请期待！');
+          } else {
+            showToast('🌐 Switched to English');
+          }
+        });
+      }
+
+      // Copy code button handler
+      document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.copy-btn');
+        if (!btn) return;
+        const code = btn.getAttribute('data-code');
+        if (!code) return;
+
+        try {
+          await navigator.clipboard.writeText(code);
+          const label = btn.querySelector('.copy-label') || btn;
+          const origText = label.textContent;
+          label.textContent = 'Copied!';
+          btn.style.borderColor = 'var(--accent)';
+          btn.style.color = 'var(--accent)';
+
+          setTimeout(() => {
+            label.textContent = origText;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+          }, 1500);
+        } catch (err) {
+          console.error('Failed to copy code: ', err);
+        }
+      });
+
+      // Active TOC link highlighter with IntersectionObserver
+      if ('IntersectionObserver' in window) {
+        const headings = document.querySelectorAll('h2[id], h3[id]');
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const linkMap = new Map();
+        tocLinks.forEach((link) => {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            linkMap.set(href.slice(1), link);
+          }
+        });
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const id = entry.target.id;
+                tocLinks.forEach((l) => {
+                  l.style.color = '';
+                  l.style.backgroundColor = '';
+                  l.style.borderLeftColor = '';
+                });
+                const activeLink = linkMap.get(id);
+                if (activeLink) {
+                  activeLink.style.color = 'var(--accent)';
+                  activeLink.style.backgroundColor = 'var(--bg-secondary)';
+                  activeLink.style.borderLeftColor = 'var(--accent)';
+                }
+              }
+            });
+          },
+          { rootMargin: '-80px 0px -70% 0px' }
+        );
+
+        headings.forEach((h) => observer.observe(h));
+      }
+    </script>
+  </body>
+</html>

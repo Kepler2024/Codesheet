@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getAllSheets } from '../lib/sheets';
+
+const sheets = await getAllSheets();
+const sheetSummaries = sheets.map((s) => ({ id: s.id, name: s.name }));
+
+// User preference: Python, TypeScript, C++, Java, JavaScript in the first 5
+const PREFERRED_ORDER = [
+  'python',
+  'typescript',
+  'cpp',
+  'java',
+  'javascript',
+  'go',
+  'rust',
+  'csharp',
+  'kotlin',
+  'swift',
+];
+
+sheets.sort((a, b) => {
+  const idxA = PREFERRED_ORDER.indexOf(a.id);
+  const idxB = PREFERRED_ORDER.indexOf(b.id);
+  return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+});
+---
+
+<Layout
+  title="Codesheet — Programming Language Cheat Sheets (2026)"
+  description="The 2026 quick reference for developers coding in a new language. One page per language covering core syntax, common data structures, and gotchas. Ideal for LeetCode practice, quick onboarding, or refreshing rusty syntax."
+  sheets={sheetSummaries}
+>
+  <main class="page-container home-page-container">
+    <div class="home-content">
+      <section class="index-hero">
+        <h1 class="index-title">
+          The 2026 quick reference for developers<br class="title-br" /> coding in a new language.
+        </h1>
+
+        <p class="index-description">
+          One page per language for LeetCode practice, quick onboarding, or refreshing rusty syntax.<br class="desc-br" />
+          Covers core syntax, common data structures, and gotchas, verified by real toolchains.
+        </p>
+      </section>
+
+      <section class="index-grid-section">
+        <div class="sheet-grid">
+          {sheets.map((sheet) => (
+            <a href={`/${sheet.id}/`} class="lang-tile" aria-label={`${sheet.name} Cheat Sheet`}>
+              <div class="tile-icon-wrapper">
+                <img src={`/icons/${sheet.id}.svg`} alt="" class="tile-icon" width="42" height="42" loading="lazy" />
+              </div>
+              <h2 class="tile-name">{sheet.name}</h2>
+            </a>
+          ))}
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>

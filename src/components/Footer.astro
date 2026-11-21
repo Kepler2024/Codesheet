@@ -1,0 +1,16 @@
+---
+const repo = process.env.GITHUB_REPOSITORY || 'HarryKepler/codesheet';
+---
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <div>
+      <p><strong>Codesheet</strong> — The 2026 quick reference for developers coding in a new language.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/" class="footer-link">Home</a>
+      <a href={`https://github.com/${repo}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" class="footer-link">Contributing</a>
+      <a href={`https://github.com/${repo}`} target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+    </div>
+  </div>
+</footer>
