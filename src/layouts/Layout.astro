@@ -13,6 +13,7 @@ interface Props {
   description?: string;
   sheets?: SheetSummary[];
   currentId?: string;
+  lang?: 'en' | 'zh';
 }
 
 const {
@@ -20,11 +21,12 @@ const {
   description = 'Cheat sheets for picking up a new programming language fast: one page per language, code first.',
   sheets = [],
   currentId,
+  lang = 'en',
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang === 'zh' ? 'zh-CN' : 'en'}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,9 +47,9 @@ const {
     </script>
   </head>
   <body>
-    <Header sheets={sheets} currentId={currentId} />
+    <Header sheets={sheets} currentId={currentId} lang={lang} />
     <slot />
-    <Footer />
+    <Footer lang={lang} />
     <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
     <script is:inline>
@@ -97,16 +99,22 @@ const {
       // Website language selector handler
       const siteLangSelect = document.getElementById('site-lang-select');
       if (siteLangSelect) {
-        const savedLang = localStorage.getItem('site_lang') || 'en';
-        siteLangSelect.value = savedLang;
-
         siteLangSelect.addEventListener('change', (e) => {
           const val = e.target.value;
           localStorage.setItem('site_lang', val);
+          const currentPath = window.location.pathname;
+
           if (val === 'zh-CN') {
-            showToast('🇨🇳 简体中文界面正在建设中，敬请期待！');
+            if (!currentPath.startsWith('/zh/') && currentPath !== '/zh') {
+              const newPath = currentPath === '/' ? '/zh/' : `/zh${currentPath.endsWith('/') ? currentPath : currentPath + '/'}`;
+              window.location.href = newPath;
+            }
           } else {
-            showToast('🌐 Switched to English');
+            if (currentPath.startsWith('/zh/') || currentPath === '/zh') {
+              let newPath = currentPath.replace(/^\/zh(\/|$)/, '/');
+              if (!newPath.endsWith('/') && !newPath.includes('.')) newPath += '/';
+              window.location.href = newPath;
+            }
           }
         });
       }
@@ -122,7 +130,8 @@ const {
           await navigator.clipboard.writeText(code);
           const label = btn.querySelector('.copy-label') || btn;
           const origText = label.textContent;
-          label.textContent = 'Copied!';
+          const isZh = document.documentElement.lang.startsWith('zh') || (origText && origText.includes('复制'));
+          label.textContent = isZh ? '已复制!' : 'Copied!';
           btn.style.borderColor = 'var(--accent)';
           btn.style.color = 'var(--accent)';
 

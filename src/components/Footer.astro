@@ -1,15 +1,25 @@
 ---
+interface Props {
+  lang?: 'en' | 'zh';
+}
+
+const { lang = 'en' } = Astro.props;
 const repo = process.env.GITHUB_REPOSITORY || 'HarryKepler/codesheet';
+const homeHref = lang === 'zh' ? '/zh/' : '/';
 ---
 
 <footer class="site-footer">
   <div class="footer-content">
     <div>
-      <p><strong>Codesheet</strong> — The 2026 quick reference for developers coding in a new language.</p>
+      {lang === 'zh' ? (
+        <p><strong>Codesheet</strong> — 2026 面向开发者的速查手册，快速上手一门新语言。</p>
+      ) : (
+        <p><strong>Codesheet</strong> — The 2026 quick reference for developers coding in a new language.</p>
+      )}
     </div>
     <div class="footer-links">
-      <a href="/" class="footer-link">Home</a>
-      <a href={`https://github.com/${repo}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" class="footer-link">Contributing</a>
+      <a href={homeHref} class="footer-link">{lang === 'zh' ? '首页' : 'Home'}</a>
+      <a href={`https://github.com/${repo}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" class="footer-link">{lang === 'zh' ? '贡献指南' : 'Contributing'}</a>
       <a href={`https://github.com/${repo}`} target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
     </div>
   </div>

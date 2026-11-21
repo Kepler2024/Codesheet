@@ -7,19 +7,23 @@ interface HeadingItem {
 
 interface Props {
   headings: HeadingItem[];
+  lang?: 'en' | 'zh';
 }
 
-const { headings } = Astro.props;
+const { headings, lang = 'en' } = Astro.props;
+const allLanguagesHref = lang === 'zh' ? '/zh/' : '/';
+const allLanguagesText = lang === 'zh' ? '所有语言' : 'All Languages';
+const tocTitle = lang === 'zh' ? '本页目录' : 'On This Page';
 ---
 
 <aside class="doc-sidebar" aria-label="Table of contents">
   <nav class="toc-nav">
-    <a href="/" class="toc-back-link">
+    <a href={allLanguagesHref} class="toc-back-link">
       <span>←</span>
-      <span>All Languages</span>
+      <span>{allLanguagesText}</span>
     </a>
 
-    <div class="toc-title">On This Page</div>
+    <div class="toc-title">{tocTitle}</div>
 
     <ul class="toc-list">
       {headings.map((h) => (
