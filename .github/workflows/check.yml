@@ -1,0 +1,39 @@
+name: Check sheets
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: python3 -m unittest discover -s tools/tests -t .
+
+  languages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [python, java, cpp, javascript, typescript, csharp, go, kotlin, swift, rust]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: python3 tools/check.py --self-test --lang ${{ matrix.lang }}
+      - name: Check sheet when present
+        env:
+          LANG_ID: ${{ matrix.lang }}
+        run: |
+          if [ -f "sheets/$LANG_ID.md" ]; then
+            python3 tools/check.py "sheets/$LANG_ID.md"
+          fi

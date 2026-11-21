@@ -1,0 +1,3 @@
+```swift
+fatalError("fixture exit")
+```

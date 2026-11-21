@@ -1,0 +1,3 @@
+```kotlin
+error("fixture exit")
+```
