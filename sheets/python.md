@@ -2,7 +2,7 @@
 
 > Written for Python 3.14
 
-The Python you need to solve LeetCode-style problems, for programmers who already know another language. Every snippet runs as is, and `# =>` shows what it prints.
+Use this quick reference to learn or revisit Python syntax and common data structures. In the examples, `# =>` marks the expected output.
 
 ## Running a Program
 

@@ -35,7 +35,7 @@ Start from [`TEMPLATE.md`](TEMPLATE.md). Every sheet begins like this:
 
 > Written for Go 1.23
 
-The Go you need to solve LeetCode-style problems, for programmers who already know another language. Every snippet runs as is, and `// =>` shows what it prints.
+Use this quick reference to learn or revisit Go syntax and common data structures. In the examples, `// =>` marks the expected output.
 ```
 
 The title must be `<Language> Cheat Sheet` and the next line must start with `> Written for `.

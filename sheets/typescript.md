@@ -2,7 +2,7 @@
 
 > Written for TypeScript 5.7 on Node.js 22
 
-The TypeScript you need to solve LeetCode-style problems, for programmers who already know another language. Every snippet runs as is, and `// =>` shows what it prints.
+Use this quick reference to learn or revisit TypeScript syntax and common data structures. In the examples, `// =>` marks the expected output.
 
 ## Running a Program
 

@@ -2,7 +2,7 @@
 
 > Written for C# 12 (.NET 8)
 
-The C# you need to solve LeetCode-style problems, for programmers who already know another language. Every snippet runs as is, and `// =>` shows what it prints.
+Use this quick reference to learn or revisit C# syntax and common data structures. In the examples, `// =>` marks the expected output.
 
 ## Running a Program
 

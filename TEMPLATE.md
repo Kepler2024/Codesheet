@@ -2,7 +2,7 @@
 
 > Written for <Language> <version>
 
-The <Language> you need to solve LeetCode-style problems, for programmers who already know another language. Every snippet runs as is, and `// =>` shows what it prints.
+Use this quick reference to learn or revisit <Language> syntax and common data structures. In the examples, `// =>` marks the expected output.
 
 <!--
 Copy this file to sheets/<id>.md, replace the placeholders, and delete these comments.
