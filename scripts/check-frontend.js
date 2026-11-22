@@ -104,6 +104,74 @@ async function checkFrontend() {
   }
   console.log('  ✓ Rust Ownership and Borrowing section and TOC anchor verified');
 
+  // Check 5: Chinese routes (/zh/ and /zh/<id>/) verification
+  console.log('\n🇨🇳 Verifying Simplified Chinese routes (/zh/ and /zh/<id>/)...');
+  const zhIndexHtmlPath = path.join(DIST_DIR, 'zh', 'index.html');
+  if (!fs.existsSync(zhIndexHtmlPath)) {
+    console.error('❌ Error: dist/zh/index.html is missing.');
+    process.exit(1);
+  }
+  const zhIndexHtml = fs.readFileSync(zhIndexHtmlPath, 'utf-8');
+
+  const zhSheets = await getAllSheets('zh');
+  console.log(`📋 Found ${zhSheets.length} Chinese sheets:`);
+
+  for (const sheet of zhSheets) {
+    const zhPageHtmlPath = path.join(DIST_DIR, 'zh', sheet.id, 'index.html');
+    if (!fs.existsSync(zhPageHtmlPath)) {
+      console.error(`❌ Error: Missing generated Chinese page for ${sheet.id} at ${zhPageHtmlPath}`);
+      process.exit(1);
+    }
+
+    // Verify index page link
+    const expectedLink = `/zh/${sheet.id}/`;
+    if (!zhIndexHtml.includes(`href="${expectedLink}"`)) {
+      console.error(`❌ Error: Chinese index page is missing link to ${expectedLink}`);
+      process.exit(1);
+    }
+
+    const zhPageHtml = fs.readFileSync(zhPageHtmlPath, 'utf-8');
+
+    // Title check
+    const expectedTitle = `${sheet.name} 速查表`;
+    if (!zhPageHtml.includes(expectedTitle)) {
+      console.error(`❌ Error: ${sheet.id} Chinese page is missing title "${expectedTitle}"`);
+      process.exit(1);
+    }
+
+    // Headings and TOC anchors check
+    for (const h of sheet.headings) {
+      const anchorId = `id="${h.slug}"`;
+      if (!zhPageHtml.includes(anchorId)) {
+        console.error(`❌ Error: ${sheet.id} Chinese page is missing section anchor ${anchorId} for "${h.text}"`);
+        process.exit(1);
+      }
+      const tocLink = `href="#${h.slug}"`;
+      if (!zhPageHtml.includes(tocLink)) {
+        console.error(`❌ Error: ${sheet.id} Chinese page is missing TOC link ${tocLink} for "${h.text}"`);
+        process.exit(1);
+      }
+    }
+
+    console.log(`  ✓ zh/${sheet.id}: generated HTML, title "${expectedTitle}", and ${sheet.headings.length} section anchors verified`);
+  }
+
+  // Check 6: Chinese specific UI components and labels
+  const zhCppHtml = fs.readFileSync(path.join(DIST_DIR, 'zh', 'cpp', 'index.html'), 'utf-8');
+  if (!zhCppHtml.includes('标准输入 (stdin)')) {
+    console.error('❌ Error: zh/cpp/index.html missing Chinese stdin label "标准输入 (stdin)"');
+    process.exit(1);
+  }
+  if (!zhCppHtml.includes('本页目录')) {
+    console.error('❌ Error: zh/cpp/index.html missing Chinese TOC label "本页目录"');
+    process.exit(1);
+  }
+  if (!zhCppHtml.includes('所有语言')) {
+    console.error('❌ Error: zh/cpp/index.html missing Chinese back link label "所有语言"');
+    process.exit(1);
+  }
+  console.log('  ✓ Chinese UI labels ("标准输入 (stdin)", "本页目录", "所有语言") verified');
+
   console.log('\n✨ All frontend acceptance checks passed successfully!\n');
 }
 
