@@ -8,7 +8,7 @@ One page per language for LeetCode practice, quick onboarding, or refreshing rus
 
 [![Check sheets](https://github.com/Kepler2024/Codesheet/actions/workflows/check.yml/badge.svg)](https://github.com/Kepler2024/Codesheet/actions/workflows/check.yml)
 [![Languages](https://img.shields.io/badge/languages-10-3b82f6)](#the-sheets)
-[![Examples](https://img.shields.io/badge/examples-verified%20in%20Docker-22c55e)](#every-example-runs)
+[![Examples](https://img.shields.io/badge/examples-verified%20in%20Docker-22c55e)](#why-codesheet)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-f59e0b)](CONTRIBUTING.md)
 [![GitHub stars](https://img.shields.io/github/stars/Kepler2024/Codesheet?style=social)](https://github.com/Kepler2024/Codesheet/stargazers)
 
@@ -23,11 +23,16 @@ One page per language for LeetCode practice, quick onboarding, or refreshing rus
 <a href="sheets/swift.md"><img src="public/icons/swift.svg" width="40" alt="Swift"></a>&nbsp;
 <a href="sheets/rust.md"><img src="public/icons/rust.svg" width="40" alt="Rust"></a>
 
-**[Read online](https://codesheet.org)** · [Browse the sheets](#the-sheets) · [Contribute](CONTRIBUTING.md)
+**[Read online at codesheet.io](https://codesheet.io)** · [Browse the sheets](#the-sheets) · [Contribute](CONTRIBUTING.md)
 
 **English** | [简体中文](README.zh-CN.md)
 
 </div>
+
+<!-- Screenshot placeholder: save a screenshot of https://codesheet.io as docs/images/website.png (about 1600 px wide). -->
+<p align="center">
+  <a href="https://codesheet.io"><img src="docs/images/website.png" width="800" alt="Screenshot of the Codesheet website"></a>
+</p>
 
 ---
 
@@ -59,19 +64,19 @@ CI checks each of these answers against the real toolchain on every pull request
 
 </details>
 
-## Why I made this
-
-When I started practicing on NeetCode, I kept going back to the Python cheat sheet written by [@neetcode-gh](https://github.com/neetcode-gh). It covered the core syntax and the essential data structures in a remarkably compact, readable way. I soon found the format useful for much more than algorithm practice. It's the fastest way I know to get started in a new language, or to refresh one after a long break. So I built one for each mainstream language, along with a checker that keeps every page correct. I hope it saves you some time too.
-
-If Codesheet saved you a trip to the docs, a ⭐ helps other people find it.
-
 ## Why Codesheet
 
 - **Code first.** A sheet is code with short comments that say why something works or where it bites. You won't find paragraphs of prose.
-- **One skeleton, ten languages.** Every sheet has the same 15 sections in the same order, so you can open two side by side and compare how Java and Go handle heaps. A language that needs one more section gets it, such as Rust's *Ownership and Borrowing*.
-- **Pitfalls are marked.** More than 250 `CAREFUL:` notes point out where a language behaves differently from the ones you already know.
-- **Every example runs.** A checker compiles and runs nearly 300 examples against pinned toolchains and compares the output with the comments. A sheet that drifts from reality fails CI.
-- **Useful beyond the first day.** A sheet covers what you need to solve LeetCode-style problems, and it works as a quick reference when you come back to a language after a long break.
+- **Ideal for algorithm practice.** A sheet covers what you need to solve LeetCode-style problems, and it works as a quick reference when you come back to a language after a long break.
+- **One skeleton, multiple languages.** Every sheet has the same 15 sections in the same order, so you can open two side by side and compare how Java and Go handle heaps. A language that needs one more section gets it, such as Rust's *Ownership and Borrowing*.
+- **Gotchas flagged.** More than 250 `CAREFUL:` notes point out where a language behaves differently from the ones you already know.
+- **Runnable examples.** A checker compiles and runs nearly 300 examples against pinned toolchains and compares the output with the comments. A sheet that drifts from reality fails CI.
+
+## Why I made this
+
+When I started practicing on NeetCode, I kept going back to the Python cheat sheet written by [@neetcode-gh](https://github.com/neetcode-gh). It covered the core syntax and the essential data structures in a remarkably compact, readable way. I soon found the format useful for much more than algorithm practice. It's the fastest way I know to get started in a new language, or to refresh one after a long break. But that sheet covers only Python.
+
+So I kept the format and took it further. Codesheet covers ten languages, and every sheet has the same 15 sections, so a new language reads like a page you already know, just in different syntax. CI compiles and runs every example against a pinned toolchain, so each output in a comment has been verified rather than written from memory. The `CAREFUL:` notes are written for people switching languages, and each one says exactly how this language differs from the ones you know. Every sheet also comes in both English and Chinese. I hope it saves you some time too.
 
 ## The sheets
 
@@ -105,28 +110,12 @@ print(-3 // 2)  # => -2
 - `CAREFUL:` marks a pitfall, something that behaves differently from most languages.
 - The line under each sheet's title names the toolchain the sheet was written and tested for.
 
-## Every example runs
-
-Code in a cheat sheet usually goes untested, so its mistakes go unnoticed. Codesheet doesn't take its own comments on trust. [`tools/check.py`](tools/README.md) takes each code block out of the Markdown, adds a `main` wrapper where the language needs one, and compiles and runs the block in a network-isolated Docker container with the pinned toolchain. It then compares the output with the `=>` comments.
-
-```sh
-python3 tools/check.py sheets/go.md   # check one sheet (requires Docker)
-python3 tools/check.py --all          # check every sheet
-```
-
-The website is built from the same Markdown files with Astro:
-
-```sh
-npm ci
-npm run dev
-```
-
 ## Contributing
 
 Fixes, sharper examples and new languages are all welcome.
 
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md). It contains every rule a sheet must follow. A new sheet starts from [TEMPLATE.md](TEMPLATE.md).
-2. Treat [sheets/python.md](sheets/python.md) as the model for coverage and tone, not as code to translate. Write what an experienced programmer in the target language would write.
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md) to learn the rules Codesheet sheets follow. A new sheet starts from [TEMPLATE.md](TEMPLATE.md).
+2. Use [sheets/python.md](sheets/python.md) as the model for coverage and tone.
 3. Run `python3 tools/check.py sheets/<id>.md` until it passes, then open a pull request.
 
 A new language also needs a checker adapter. See [Adding a new language](CONTRIBUTING.md#adding-a-new-language).
