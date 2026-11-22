@@ -1,5 +1,7 @@
 # Contributing
 
+**English** | [简体中文](CONTRIBUTING.zh-CN.md)
+
 Thanks for helping. This guide is the whole rulebook: a new sheet written by following it should look like it was written by the same person as [`sheets/python.md`](sheets/python.md), the reference sheet.
 
 ## What a sheet is
