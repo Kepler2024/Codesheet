@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/logo.svg" width="96" alt="Codesheet logo">
+
 # Codesheet
 
 **The 2026 quick reference for developers coding in a new language.**

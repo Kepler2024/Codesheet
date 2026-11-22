@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/logo.svg" width="96" alt="Codesheet logo">
+
 # Codesheet
 
 **2026 主流编程语言速查表，助你快速入门一门新编程语言。**
