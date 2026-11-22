@@ -50,36 +50,34 @@ function escapeAttr(str) {
  * Scan sheets/*.md (or sheets_zh/*.md) files, extract metadata, validate headers, and return parsed data.
  */
 export async function getAllSheets(lang = 'en') {
-  const dirName = lang === 'zh' ? 'sheets_zh' : 'sheets';
-  let targetDir = path.resolve(process.cwd(), dirName);
-  let fileNames;
-  try {
-    fileNames = await fs.readdir(targetDir);
-  } catch (err) {
-    if (lang === 'zh') {
-      targetDir = SHEETS_DIR;
-      fileNames = await fs.readdir(SHEETS_DIR);
-    } else {
-      throw new Error(`Failed to read sheets directory at ${targetDir}: ${err.message}`);
-    }
-  }
-
-  const mdFiles = fileNames.filter((f) => f.endsWith('.md')).sort();
-  const sheets = [];
-  const idMap = new Map();
-
   const repo = process.env.GITHUB_REPOSITORY || 'HarryKepler/codesheet';
   const branch = process.env.GITHUB_REF_NAME || 'main';
 
-  for (const file of mdFiles) {
+  // Read all English sheets first to know the canonical list of languages
+  let enFiles = [];
+  try {
+    enFiles = (await fs.readdir(SHEETS_DIR)).filter((f) => f.endsWith('.md')).sort();
+  } catch (err) {
+    throw new Error(`Failed to read sheets directory at ${SHEETS_DIR}: ${err.message}`);
+  }
+
+  const zhDir = path.resolve(process.cwd(), 'sheets_zh');
+  let zhFiles = [];
+  if (lang === 'zh') {
+    try {
+      zhFiles = (await fs.readdir(zhDir)).filter((f) => f.endsWith('.md'));
+    } catch {
+      zhFiles = [];
+    }
+  }
+
+  const sheets = [];
+  for (const file of enFiles) {
     const id = path.basename(file, '.md');
+    const isZhAvailable = lang === 'zh' && zhFiles.includes(file);
+    const targetDir = isZhAvailable ? zhDir : SHEETS_DIR;
     const fullPath = path.join(targetDir, file);
     const relPath = path.join(path.basename(targetDir), file);
-
-    if (idMap.has(id)) {
-      throw new Error(`Duplicate route ID "${id}" detected for files: ${relPath} and ${idMap.get(id)}`);
-    }
-    idMap.set(id, relPath);
 
     const rawContent = await fs.readFile(fullPath, 'utf-8');
     const tokens = lexer(rawContent);
