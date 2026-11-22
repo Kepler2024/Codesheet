@@ -20,32 +20,85 @@ const tocTitle = lang === 'zh' ? '本页目录' : 'On This Page';
 
 <aside class="doc-sidebar" aria-label="Table of contents">
   <nav class="toc-nav">
-    <a href={allLanguagesHref} class="toc-back-link">
-      <span>←</span>
-      <span>{allLanguagesText}</span>
-    </a>
+    <div class="toc-top-bar">
+      <a href={allLanguagesHref} class="toc-back-link">
+        <span>←</span>
+        <span>{allLanguagesText}</span>
+      </a>
 
-    <div class="toc-search-wrapper">
-      <button class="toc-search-btn" type="button" data-action="open-search" aria-label={lang === 'zh' ? '搜索速查表' : 'Search sheet'}>
-        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <!-- Mobile TOC Toggle Button -->
+      <button
+        class="mobile-toc-toggle"
+        id="mobile-toc-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="toc-collapse"
+        aria-label={lang === 'zh' ? '展开/收起目录' : 'Toggle Table of Contents'}
+      >
+        <span class="mobile-toc-label">
+          <svg class="mobile-toc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>{tocTitle}</span>
+          <span class="toc-count-badge">({headings.length})</span>
+        </span>
+        <svg class="mobile-toc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-        <span class="toc-search-text">{lang === 'zh' ? '搜索速查表...' : 'Search sheet...'}</span>
-        <kbd class="toc-search-kbd">⌘K</kbd>
       </button>
     </div>
 
-    <div class="toc-title">{tocTitle}</div>
+    <div class="toc-body" id="toc-collapse">
+      <div class="toc-search-wrapper">
+        <button class="toc-search-btn" type="button" data-action="open-search" aria-label={lang === 'zh' ? '搜索速查表' : 'Search sheet'}>
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span class="toc-search-text">{lang === 'zh' ? '搜索速查表...' : 'Search sheet...'}</span>
+          <kbd class="toc-search-kbd">⌘K</kbd>
+        </button>
+      </div>
 
-    <ul class="toc-list">
-      {headings.map((h) => (
-        <li class={`toc-item depth-${h.depth}`}>
-          <a href={`#${h.slug}`} class="toc-link" data-slug={h.slug}>
-            {h.text}
-          </a>
-        </li>
-      ))}
-    </ul>
+      <div class="desktop-toc-title">{tocTitle}</div>
+
+      <ul class="toc-list">
+        {headings.map((h) => (
+          <li class={`toc-item depth-${h.depth}`}>
+            <a href={`#${h.slug}`} class="toc-link" data-slug={h.slug}>
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   </nav>
 </aside>
+
+<script is:inline>
+  (function () {
+    const toggleBtn = document.getElementById('mobile-toc-toggle');
+    const tocBody = document.getElementById('toc-collapse');
+    if (!toggleBtn || !tocBody) return;
+
+    toggleBtn.addEventListener('click', () => {
+      const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      toggleBtn.setAttribute('aria-expanded', String(!isExpanded));
+      tocBody.classList.toggle('expanded');
+    });
+
+    tocBody.querySelectorAll('.toc-link, .toc-search-btn').forEach((item) => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 900) {
+          toggleBtn.setAttribute('aria-expanded', 'false');
+          tocBody.classList.remove('expanded');
+        }
+      });
+    });
+  })();
+</script>
