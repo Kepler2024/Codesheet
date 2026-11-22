@@ -115,6 +115,8 @@ export async function getAllSheets(lang = 'en') {
     let version = bqRawText;
     if (bqRawText.startsWith('Written for ')) {
       version = bqRawText.replace(/^Written for\s+/, '').trim();
+    } else if (bqRawText.startsWith('适用于 ')) {
+      version = bqRawText.replace(/^适用于\s+/, '').trim();
     } else if (bqRawText.startsWith('针对 ')) {
       version = bqRawText.replace(/^针对\s+/, '').replace(/\s*编写$/, '').trim();
     }
