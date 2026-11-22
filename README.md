@@ -25,14 +25,14 @@ One page per language for LeetCode practice, quick onboarding, or refreshing rus
 <a href="sheets/swift.md"><img src="public/icons/swift.svg" width="40" alt="Swift"></a>&nbsp;
 <a href="sheets/rust.md"><img src="public/icons/rust.svg" width="40" alt="Rust"></a>
 
-**[Read online at codesheet.io](https://codesheet.io)** · [Browse the sheets](#the-sheets) · [Contribute](CONTRIBUTING.md)
+**[Read online](https://kepler2024.github.io/Codesheet/)** · [Browse the sheets](#the-sheets) · [Contribute](CONTRIBUTING.md)
 
 **English** | [简体中文](README.zh-CN.md)
 
 </div>
 
 <p align="center">
-  <a href="https://codesheet.io"><img src="docs/images/website.png" width="800" alt="Screenshot of the Codesheet website"></a>
+  <a href="https://kepler2024.github.io/Codesheet/"><img src="docs/images/website.png" width="800" alt="Screenshot of the Codesheet website"></a>
 </p>
 
 ---
