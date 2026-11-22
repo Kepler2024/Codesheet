@@ -5,6 +5,8 @@ import path from 'node:path';
 import { getAllSheets } from '../src/lib/sheets.js';
 
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
+// Same BASE_PATH the build used: "" for a domain root, "/Codesheet" for a github.io subpath.
+const BASE = (process.env.BASE_PATH || '/').replace(/\/+$/, '');
 
 async function checkFrontend() {
   console.log('🔍 Running Frontend Acceptance Checks on dist/ ...\n');
@@ -33,7 +35,7 @@ async function checkFrontend() {
     }
 
     // Verify index page link
-    const expectedLink = `/${sheet.id}/`;
+    const expectedLink = `${BASE}/${sheet.id}/`;
     if (!indexHtml.includes(`href="${expectedLink}"`)) {
       console.error(`❌ Error: Index page dist/index.html is missing link to ${expectedLink}`);
       process.exit(1);
@@ -124,7 +126,7 @@ async function checkFrontend() {
     }
 
     // Verify index page link
-    const expectedLink = `/zh/${sheet.id}/`;
+    const expectedLink = `${BASE}/zh/${sheet.id}/`;
     if (!zhIndexHtml.includes(`href="${expectedLink}"`)) {
       console.error(`❌ Error: Chinese index page is missing link to ${expectedLink}`);
       process.exit(1);
@@ -171,6 +173,24 @@ async function checkFrontend() {
     process.exit(1);
   }
   console.log('  ✓ Chinese UI labels ("标准输入 (stdin)", "本页目录", "所有语言") verified');
+
+  // Check 7: under a subpath, every root-relative link and asset must start with the base,
+  // or it points outside the site (e.g. kepler2024.github.io/cpp/ instead of .../Codesheet/cpp/).
+  if (BASE) {
+    const htmlFiles = fs.readdirSync(DIST_DIR, { recursive: true }).filter((f) => f.endsWith('.html'));
+    let count = 0;
+    for (const file of htmlFiles) {
+      const html = fs.readFileSync(path.join(DIST_DIR, file), 'utf-8');
+      for (const [, url] of html.matchAll(/(?:href|src)="(\/[^"]*)"/g)) {
+        if (!url.startsWith(`${BASE}/`)) {
+          console.error(`❌ Error: dist/${file} links to "${url}", which is outside the base path "${BASE}/"`);
+          process.exit(1);
+        }
+        count++;
+      }
+    }
+    console.log(`  ✓ ${count} internal links and assets in ${htmlFiles.length} pages stay under "${BASE}/"`);
+  }
 
   console.log('\n✨ All frontend acceptance checks passed successfully!\n');
 }

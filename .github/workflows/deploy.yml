@@ -38,10 +38,13 @@ jobs:
       - name: Build site with Astro
         env:
           SITE_URL: ${{ vars.SITE_URL || 'https://codesheet.io' }}
+          BASE_PATH: ${{ vars.BASE_PATH || '/' }}
           ASTRO_TELEMETRY_DISABLED: '1'
         run: npm run build
 
       - name: Run frontend acceptance checks
+        env:
+          BASE_PATH: ${{ vars.BASE_PATH || '/' }}
         run: npm run check
 
       - name: Upload Pages artifact

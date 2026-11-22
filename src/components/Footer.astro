@@ -1,11 +1,13 @@
 ---
+import { withBase } from '../lib/paths';
+
 interface Props {
   lang?: 'en' | 'zh';
 }
 
 const { lang = 'en' } = Astro.props;
 const repo = process.env.GITHUB_REPOSITORY || 'Kepler2024/Codesheet';
-const homeHref = lang === 'zh' ? '/zh/' : '/';
+const homeHref = withBase(lang === 'zh' ? '/zh/' : '/');
 ---
 
 <footer class="site-footer">

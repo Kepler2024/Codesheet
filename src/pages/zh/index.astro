@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getAllSheets } from '../../lib/sheets';
+import { withBase } from '../../lib/paths';
 
 const sheets = await getAllSheets('zh');
 const sheetSummaries = sheets.map((s) => ({ id: s.id, name: s.name }));
@@ -48,9 +49,9 @@ sheets.sort((a, b) => {
       <section class="index-grid-section">
         <div class="sheet-grid">
           {sheets.map((sheet) => (
-            <a href={`/zh/${sheet.id}/`} class="lang-tile" aria-label={`${sheet.name} 速查表`}>
+            <a href={withBase(`/zh/${sheet.id}/`)} class="lang-tile" aria-label={`${sheet.name} 速查表`}>
               <div class="tile-icon-wrapper">
-                <img src={`/icons/${sheet.id}.svg`} alt="" class="tile-icon" width="42" height="42" loading="lazy" />
+                <img src={withBase(`/icons/${sheet.id}.svg`)} alt="" class="tile-icon" width="42" height="42" loading="lazy" />
               </div>
               <h2 class="tile-name">{sheet.name}</h2>
             </a>

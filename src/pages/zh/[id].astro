@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
 import { getAllSheets, renderSheet } from '../../lib/sheets';
+import { withBase } from '../../lib/paths';
 
 export async function getStaticPaths() {
   const sheets = await getAllSheets('zh');
@@ -39,7 +40,7 @@ const { sheet, renderedHtml, allSummaries } = Astro.props;
       <main class="doc-content">
         <section class="page-hero">
           <nav class="breadcrumbs" aria-label="面包屑导航">
-            <a href="/zh/">首页</a>
+            <a href={withBase('/zh/')}>首页</a>
             <span>/</span>
             <span style="color: var(--text-primary); font-weight: 500;">{sheet.name}</span>
           </nav>

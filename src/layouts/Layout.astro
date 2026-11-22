@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { base } from '../lib/paths';
 import '../styles/global.css';
 
 interface SheetSummary {
@@ -26,7 +27,7 @@ const {
 ---
 
 <!doctype html>
-<html lang={lang === 'zh' ? 'zh-CN' : 'en'}>
+<html lang={lang === 'zh' ? 'zh-CN' : 'en'} data-base={base}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -102,18 +103,21 @@ const {
         siteLangSelect.addEventListener('change', (e) => {
           const val = e.target.value;
           localStorage.setItem('site_lang', val);
-          const currentPath = window.location.pathname;
+          // Work on the path below the base ("/Codesheet" on github.io, "" on a root domain).
+          const base = document.documentElement.dataset.base || '';
+          let currentPath = window.location.pathname;
+          if (base && currentPath.startsWith(base)) currentPath = currentPath.slice(base.length) || '/';
 
           if (val === 'zh-CN') {
             if (!currentPath.startsWith('/zh/') && currentPath !== '/zh') {
               const newPath = currentPath === '/' ? '/zh/' : `/zh${currentPath.endsWith('/') ? currentPath : currentPath + '/'}`;
-              window.location.href = newPath;
+              window.location.href = base + newPath;
             }
           } else {
             if (currentPath.startsWith('/zh/') || currentPath === '/zh') {
               let newPath = currentPath.replace(/^\/zh(\/|$)/, '/');
               if (!newPath.endsWith('/') && !newPath.includes('.')) newPath += '/';
-              window.location.href = newPath;
+              window.location.href = base + newPath;
             }
           }
         });

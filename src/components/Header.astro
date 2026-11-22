@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 interface SheetSummary {
   id: string;
   name: string;
@@ -12,7 +14,7 @@ interface Props {
 
 const { sheets = [], currentId, lang = 'en' } = Astro.props;
 const repo = process.env.GITHUB_REPOSITORY || 'Kepler2024/Codesheet';
-const homeHref = lang === 'zh' ? '/zh/' : '/';
+const homeHref = withBase(lang === 'zh' ? '/zh/' : '/');
 ---
 
 <header class="site-header">

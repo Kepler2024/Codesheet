@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 interface HeadingItem {
   depth: number;
   text: string;
@@ -11,7 +13,7 @@ interface Props {
 }
 
 const { headings, lang = 'en' } = Astro.props;
-const allLanguagesHref = lang === 'zh' ? '/zh/' : '/';
+const allLanguagesHref = withBase(lang === 'zh' ? '/zh/' : '/');
 const allLanguagesText = lang === 'zh' ? '所有语言' : 'All Languages';
 const tocTitle = lang === 'zh' ? '本页目录' : 'On This Page';
 ---
