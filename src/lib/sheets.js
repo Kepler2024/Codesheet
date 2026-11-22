@@ -50,7 +50,7 @@ function escapeAttr(str) {
  * Scan sheets/*.md (or sheets_zh/*.md) files, extract metadata, validate headers, and return parsed data.
  */
 export async function getAllSheets(lang = 'en') {
-  const repo = process.env.GITHUB_REPOSITORY || 'HarryKepler/codesheet';
+  const repo = process.env.GITHUB_REPOSITORY || 'Kepler2024/Codesheet';
   const branch = process.env.GITHUB_REF_NAME || 'main';
 
   // Read all English sheets first to know the canonical list of languages

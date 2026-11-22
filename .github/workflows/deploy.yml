@@ -37,7 +37,7 @@ jobs:
 
       - name: Build site with Astro
         env:
-          SITE_URL: ${{ vars.SITE_URL || 'https://codesheet.org' }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://codesheet.io' }}
           ASTRO_TELEMETRY_DISABLED: '1'
         run: npm run build
 

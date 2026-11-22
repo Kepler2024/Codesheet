@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://codesheet.org',
+  site: process.env.SITE_URL || 'https://codesheet.io',
   base: '/',
   trailingSlash: 'always',
   build: {
