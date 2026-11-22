@@ -305,3 +305,108 @@ export async function renderSheet(sheet, lang = 'en') {
   const html = markedInstance.parser(bodyTokens);
   return html;
 }
+
+/**
+ * Build a structured, lightweight search index from the sheet's Markdown content.
+ */
+export function buildSearchIndex(rawContent, headings = [], lang = 'en') {
+  const tokens = lexer(rawContent);
+  const slugger = new GithubSlugger();
+  const items = [];
+
+  let currentH2 = null;
+  let currentH3 = null;
+
+  for (const token of tokens) {
+    if (token.type === 'heading') {
+      const text = token.text.trim();
+      const slug = slugger.slug(text);
+      if (token.depth === 2) {
+        currentH2 = { text, slug };
+        currentH3 = null;
+        items.push({
+          id: slug,
+          section: text,
+          title: text,
+          type: 'heading',
+          text: text,
+          snippet: text,
+        });
+      } else if (token.depth === 3) {
+        currentH3 = { text, slug };
+        items.push({
+          id: slug,
+          section: currentH2 ? currentH2.text : '',
+          title: text,
+          type: 'heading',
+          text: text,
+          snippet: text,
+        });
+      }
+    } else if (token.type === 'code' && token.lang && !token.lang.includes('stdin')) {
+      const rawCode = token.text;
+      const lines = rawCode.split('\n');
+      const targetSlug = currentH3 ? currentH3.slug : (currentH2 ? currentH2.slug : '');
+      const sectionName = currentH2 ? currentH2.text : '';
+
+      // 1. Check for CAREFUL / gotcha lines
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (
+          line.includes('CAREFUL:') ||
+          line.includes('注意：') ||
+          line.includes('注意:') ||
+          line.includes('陷阱：') ||
+          line.includes('陷阱:')
+        ) {
+          const cleanGotcha = line.replace(/^(\/\/|#)\s*/, '').trim();
+          let codeContext = '';
+          for (let j = i + 1; j < Math.min(lines.length, i + 3); j++) {
+            if (lines[j].trim() && !lines[j].startsWith('//') && !lines[j].startsWith('#')) {
+              codeContext = lines[j].trim();
+              break;
+            }
+          }
+          items.push({
+            id: targetSlug,
+            section: sectionName,
+            title: cleanGotcha,
+            type: 'gotcha',
+            text: `${cleanGotcha} ${codeContext}`,
+            snippet: codeContext ? `${cleanGotcha}\n${codeContext}` : cleanGotcha,
+          });
+        }
+      }
+
+      // 2. Add code snippet entry
+      const codeLines = lines.filter((l) => l.trim() && !l.startsWith('//') && !l.startsWith('#'));
+      if (codeLines.length > 0) {
+        const preview = codeLines.slice(0, 3).join('\n');
+        let descComment = '';
+        const firstComment = lines.find(
+          (l) =>
+            (l.startsWith('//') || l.startsWith('#')) &&
+            !l.includes('=>') &&
+            !l.includes('CAREFUL:') &&
+            !l.includes('注意') &&
+            !l.includes('陷阱')
+        );
+        if (firstComment) {
+          descComment = firstComment.replace(/^(\/\/|#)\s*/, '').trim();
+        }
+
+        items.push({
+          id: targetSlug,
+          section: sectionName,
+          title: descComment || codeLines[0],
+          type: 'code',
+          text: rawCode,
+          snippet: preview,
+        });
+      }
+    }
+  }
+
+  return items;
+}
+
