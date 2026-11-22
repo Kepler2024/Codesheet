@@ -122,7 +122,7 @@ print(-3 // 2)  # => -2
 
 添加新语言还需要为检查器编写适配器，详见[添加新语言](CONTRIBUTING.zh-CN.md#添加新语言)。
 
-> 用 AI 编程助手写速查表？让它先读 [AGENTS.zh-CN.md](AGENTS.zh-CN.md)。AI 和人遵守同一套规则，也要通过同一个检查器。
+> 用 AI 编程助手写速查表？让它先读 [AGENTS.md](AGENTS.md)。AI 和人遵守同一套规则，也要通过同一个检查器。
 
 
 ## 致谢

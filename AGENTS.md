@@ -1,7 +1,5 @@
 # Instructions for AI agents
 
-**English** | [简体中文](AGENTS.zh-CN.md)
-
 For work on the website, read the [frontend specification](docs/frontend.md) before designing or editing pages, content loading, routing, or deployment. Use its acceptance checks when reviewing the frontend.
 
 This repository is a set of programming-language cheat sheets (`sheets/<id>.md`). If you were asked to write or improve a sheet:
