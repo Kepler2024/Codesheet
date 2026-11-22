@@ -26,15 +26,15 @@
 <a href="sheets_zh/swift.md"><img src="public/icons/swift.svg" width="40" alt="Swift"></a>&nbsp;
 <a href="sheets_zh/rust.md"><img src="public/icons/rust.svg" width="40" alt="Rust"></a>
 
+<p align="center">
+  <a href="https://kepler2024.github.io/Codesheet/"><img src="docs/images/website.png" width="800" alt="Codesheet 网站截图"></a>
+</p>
+
 **[在线阅读](https://kepler2024.github.io/Codesheet/)** · [浏览速查表](#速查表) · [参与贡献](CONTRIBUTING.zh-CN.md)
 
 [English](README.md) | **简体中文**
 
 </div>
-
-<p align="center">
-  <a href="https://kepler2024.github.io/Codesheet/"><img src="docs/images/website.png" width="800" alt="Codesheet 网站截图"></a>
-</p>
 
 ---
 
