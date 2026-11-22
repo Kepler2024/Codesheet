@@ -5,7 +5,7 @@ interface SearchItem {
   title: string;
   type: 'heading' | 'gotcha' | 'code' | 'text';
   text: string;
-  snippet: string;
+  snippet?: string;
 }
 
 interface Props {
@@ -17,24 +17,26 @@ interface Props {
 const { sheetName, lang = 'en', searchIndex = [] } = Astro.props;
 
 const placeholder = lang === 'zh'
-  ? `搜索 ${sheetName} 速查表 (输入关键词如 堆、map、CAREFUL)...`
-  : `Search ${sheetName} sheet (e.g. heap, map, sort, careful)...`;
+  ? `搜索关键词... (⌘K)`
+  : `Search keywords... (⌘K)`;
 
-const quickJumpTitle = lang === 'zh' ? '快速跳转章节' : 'Jump to section';
-const noResultsTitle = lang === 'zh' ? '未找到匹配结果' : 'No results found';
-const noResultsHint = lang === 'zh'
-  ? '尝试使用更通用的词汇，如“数组”、“哈希”、“排序”或“陷阱”'
-  : 'Try searching for general terms like "array", "heap", "sort", or "careful"';
+const emptyTip = lang === 'zh'
+  ? '输入关键词快速定位章节与语法'
+  : 'Type keywords to find sections or syntax';
+
+const noResults = lang === 'zh'
+  ? '未找到匹配结果'
+  : 'No matching results';
 ---
 
-<div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search cheat sheet" style="display: none;">
+<div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search" style="display: none;">
   <div class="search-modal-backdrop" id="search-backdrop"></div>
 
   <div class="search-modal-container">
     <div class="search-modal-box">
       <!-- Search Input Bar -->
       <div class="search-input-header">
-        <svg class="search-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="search-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
@@ -50,55 +52,16 @@ const noResultsHint = lang === 'zh'
           spellcheck="false"
         />
 
-        <button id="search-clear-btn" class="search-clear-btn" type="button" aria-label="Clear search" style="display: none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-
-        <button id="search-close-btn" class="search-close-btn" type="button" aria-label="Close search">
+        <button id="search-close-btn" class="search-close-btn" type="button" aria-label="Close">
           <kbd class="search-esc-kbd">ESC</kbd>
         </button>
       </div>
 
-      <!-- Quick Filter Pills -->
-      <div class="search-filter-tags">
-        <button class="search-tag-btn" data-filter="all" type="button">{lang === 'zh' ? '全部' : 'All'}</button>
-        <button class="search-tag-btn" data-filter="gotcha" type="button">⚠️ {lang === 'zh' ? '避坑陷阱 (CAREFUL)' : 'Gotchas (CAREFUL)'}</button>
-        <button class="search-tag-btn" data-filter="code" type="button">&lt;/&gt; {lang === 'zh' ? '代码语法' : 'Code'}</button>
-        <button class="search-tag-btn" data-filter="heading" type="button"># {lang === 'zh' ? '章节结构' : 'Sections'}</button>
-      </div>
-
-      <!-- Search Results / Empty State -->
+      <!-- Search Results -->
       <div id="search-results-wrapper" class="search-results-wrapper">
-        <!-- Initial suggestions state -->
-        <div id="search-initial-view" class="search-initial-view">
-          <div class="search-view-title">{quickJumpTitle}</div>
-          <div class="search-quick-links" id="search-quick-links">
-            <!-- Populated dynamically from headings -->
-          </div>
-        </div>
-
-        <!-- Matching results list -->
+        <div id="search-empty-tip" class="search-empty-tip">{emptyTip}</div>
         <ul id="search-results-list" class="search-results-list" role="listbox" style="display: none;"></ul>
-
-        <!-- No results state -->
-        <div id="search-no-results" class="search-no-results" style="display: none;">
-          <div class="no-results-icon">🔍</div>
-          <div class="no-results-title">{noResultsTitle}</div>
-          <div class="no-results-hint">{noResultsHint}</div>
-        </div>
-      </div>
-
-      <!-- Search Modal Footer -->
-      <div class="search-modal-footer">
-        <div class="search-footer-stats" id="search-count-label"></div>
-        <div class="search-footer-shortcuts">
-          <span class="shortcut-item"><kbd>↑</kbd><kbd>↓</kbd> {lang === 'zh' ? '切换' : 'Navigate'}</span>
-          <span class="shortcut-item"><kbd>↵</kbd> {lang === 'zh' ? '选择' : 'Select'}</span>
-          <span class="shortcut-item"><kbd>ESC</kbd> {lang === 'zh' ? '关闭' : 'Close'}</span>
-        </div>
+        <div id="search-no-results" class="search-empty-tip" style="display: none;">{noResults}</div>
       </div>
     </div>
   </div>
@@ -112,18 +75,13 @@ const noResultsHint = lang === 'zh'
     const modal = document.getElementById('search-modal');
     const backdrop = document.getElementById('search-backdrop');
     const input = document.getElementById('search-input');
-    const clearBtn = document.getElementById('search-clear-btn');
     const closeBtn = document.getElementById('search-close-btn');
-    const resultsWrapper = document.getElementById('search-results-wrapper');
     const resultsList = document.getElementById('search-results-list');
-    const initialView = document.getElementById('search-initial-view');
-    const noResultsView = document.getElementById('search-no-results');
-    const countLabel = document.getElementById('search-count-label');
-    const quickLinksContainer = document.getElementById('search-quick-links');
-    const tagBtns = document.querySelectorAll('.search-tag-btn');
+    const emptyTip = document.getElementById('search-empty-tip');
+    const noResults = document.getElementById('search-no-results');
 
     const indexElement = document.getElementById('sheet-search-index');
-    if (!indexElement || !modal) return;
+    if (!indexElement || !modal || !input) return;
 
     let searchItems = [];
     try {
@@ -134,22 +92,6 @@ const noResultsHint = lang === 'zh'
 
     let activeIndex = -1;
     let currentResults = [];
-    let currentFilter = 'all';
-
-    // Populate initial quick jump section links
-    if (quickLinksContainer) {
-      const headingItems = searchItems.filter((i) => i.type === 'heading');
-      headingItems.slice(0, 15).forEach((h) => {
-        const link = document.createElement('button');
-        link.type = 'button';
-        link.className = 'quick-link-chip';
-        link.textContent = h.title;
-        link.addEventListener('click', () => {
-          jumpToTarget(h.id);
-        });
-        quickLinksContainer.appendChild(link);
-      });
-    }
 
     function openModal() {
       modal.style.display = 'flex';
@@ -183,81 +125,68 @@ const noResultsHint = lang === 'zh'
 
     function performSearch(query) {
       const q = query.trim().toLowerCase();
-      if (!q && currentFilter === 'all') {
-        initialView.style.display = 'block';
-        resultsList.style.display = 'none';
-        noResultsView.style.display = 'none';
-        countLabel.textContent = '';
+      if (!q) {
+        if (emptyTip) emptyTip.style.display = 'block';
+        if (resultsList) resultsList.style.display = 'none';
+        if (noResults) noResults.style.display = 'none';
         currentResults = [];
         activeIndex = -1;
         return;
       }
 
-      initialView.style.display = 'none';
+      if (emptyTip) emptyTip.style.display = 'none';
 
-      let items = searchItems;
-      if (currentFilter !== 'all') {
-        items = items.filter((i) => i.type === currentFilter);
-      }
+      const scored = [];
+      const terms = q.split(/\s+/).filter(Boolean);
 
-      if (!q) {
-        currentResults = items.slice(0, 30);
-      } else {
-        const scored = [];
-        const terms = q.split(/\s+/).filter(Boolean);
+      for (const item of searchItems) {
+        const titleLower = item.title.toLowerCase();
+        const textLower = (item.text || '').toLowerCase();
+        const sectionLower = (item.section || '').toLowerCase();
 
-        for (const item of items) {
-          const titleLower = item.title.toLowerCase();
-          const textLower = (item.text || '').toLowerCase();
-          const sectionLower = (item.section || '').toLowerCase();
-          const snippetLower = (item.snippet || '').toLowerCase();
+        let score = 0;
+        let matched = true;
 
-          let score = 0;
-          let matched = true;
+        for (const term of terms) {
+          let termScore = 0;
+          if (titleLower === term) termScore += 100;
+          else if (titleLower.startsWith(term)) termScore += 60;
+          else if (titleLower.includes(term)) termScore += 40;
 
-          for (const term of terms) {
-            let termScore = 0;
-            if (titleLower === term) termScore += 100;
-            else if (titleLower.startsWith(term)) termScore += 60;
-            else if (titleLower.includes(term)) termScore += 40;
+          if (sectionLower.includes(term)) termScore += 25;
+          if (textLower.includes(term)) termScore += 15;
 
-            if (snippetLower.includes(term)) termScore += 30;
-            if (sectionLower.includes(term)) termScore += 25;
-            if (textLower.includes(term)) termScore += 15;
-
-            if (termScore === 0) {
-              matched = false;
-              break;
-            }
-            score += termScore;
+          if (termScore === 0) {
+            matched = false;
+            break;
           }
-
-          if (matched && score > 0) {
-            if (item.type === 'gotcha') score += 10;
-            scored.push({ item, score });
-          }
+          score += termScore;
         }
 
-        scored.sort((a, b) => b.score - a.score);
-        currentResults = scored.map((s) => s.item).slice(0, 35);
+        if (matched && score > 0) {
+          scored.push({ item, score });
+        }
       }
+
+      scored.sort((a, b) => b.score - a.score);
+      currentResults = scored.map((s) => s.item).slice(0, 25);
 
       renderResults(q);
     }
 
     function renderResults(query) {
+      if (!resultsList) return;
       resultsList.innerHTML = '';
+
       if (currentResults.length === 0) {
         resultsList.style.display = 'none';
-        noResultsView.style.display = 'block';
-        countLabel.textContent = '0 results';
+        if (noResults) noResults.style.display = 'block';
         activeIndex = -1;
         return;
       }
 
-      noResultsView.style.display = 'none';
+      if (noResults) noResults.style.display = 'none';
       resultsList.style.display = 'flex';
-      countLabel.textContent = `${currentResults.length} ${currentResults.length === 1 ? 'match' : 'matches'}`;
       activeIndex = 0;
 
       currentResults.forEach((item, index) => {
@@ -267,28 +196,15 @@ const noResultsHint = lang === 'zh'
         li.setAttribute('aria-selected', index === activeIndex ? 'true' : 'false');
         li.dataset.index = String(index);
 
-        let typeBadgeText = 'Code';
-        let typeBadgeClass = 'badge-code';
-        if (item.type === 'heading') {
-          typeBadgeText = 'Section';
-          typeBadgeClass = 'badge-section';
-        } else if (item.type === 'gotcha') {
-          typeBadgeText = '⚠️ CAREFUL';
-          typeBadgeClass = 'badge-gotcha';
-        }
-
         const highlightedTitle = highlightText(item.title, query);
-        const highlightedSnippet = item.snippet && item.snippet !== item.title
-          ? highlightText(item.snippet, query)
-          : '';
+        const sectionName = item.section || '';
 
         li.innerHTML = `
-          <div class="result-item-header">
-            <span class="result-section">${item.section || ''}</span>
-            <span class="result-type-badge ${typeBadgeClass}">${typeBadgeText}</span>
+          <div class="search-item-left">
+            <span class="search-item-hash">#</span>
+            <span class="search-item-title">${highlightedTitle}</span>
           </div>
-          <div class="result-item-title">${highlightedTitle}</div>
-          ${highlightedSnippet ? `<pre class="result-item-snippet"><code>${highlightedSnippet}</code></pre>` : ''}
+          ${sectionName ? `<span class="search-item-section">${sectionName}</span>` : ''}
         `;
 
         li.addEventListener('click', () => {
@@ -304,115 +220,83 @@ const noResultsHint = lang === 'zh'
     }
 
     function updateActiveIndex(newIndex) {
+      activeIndex = newIndex;
       const items = resultsList.querySelectorAll('.search-result-item');
-      if (items.length === 0) return;
-
-      if (activeIndex >= 0 && activeIndex < items.length) {
-        items[activeIndex].classList.remove('active');
-        items[activeIndex].setAttribute('aria-selected', 'false');
-      }
-
-      activeIndex = Math.max(0, Math.min(newIndex, items.length - 1));
-      items[activeIndex].classList.add('active');
-      items[activeIndex].setAttribute('aria-selected', 'true');
-      items[activeIndex].scrollIntoView({ block: 'nearest' });
+      items.forEach((item, idx) => {
+        const isActive = idx === activeIndex;
+        item.classList.toggle('active', isActive);
+        item.setAttribute('aria-selected', String(isActive));
+        if (isActive) {
+          item.scrollIntoView({ block: 'nearest' });
+        }
+      });
     }
 
     function jumpToTarget(targetId) {
       if (!targetId) return;
       closeModal();
-
-      const el = document.getElementById(targetId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Pulse highlight animation
-        el.classList.remove('search-pulse-target');
-        void el.offsetWidth; // trigger reflow
-        el.classList.add('search-pulse-target');
+      const targetElem = document.getElementById(targetId);
+      if (targetElem) {
+        targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        targetElem.classList.remove('search-pulse-target');
+        void targetElem.offsetWidth; // re-flow
+        targetElem.classList.add('search-pulse-target');
         setTimeout(() => {
-          el.classList.remove('search-pulse-target');
-        }, 1800);
+          targetElem.classList.remove('search-pulse-target');
+        }, 2000);
       }
-
-      history.pushState(null, '', `#${targetId}`);
     }
 
-    // Input event
+    // Input listener
     input.addEventListener('input', (e) => {
-      const val = e.target.value;
-      clearBtn.style.display = val ? 'flex' : 'none';
-      performSearch(val);
+      performSearch(e.target.value);
     });
-
-    // Clear button
-    clearBtn.addEventListener('click', () => {
-      input.value = '';
-      clearBtn.style.display = 'none';
-      input.focus();
-      performSearch('');
-    });
-
-    // Close button and backdrop
-    closeBtn.addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
-
-    // Filter tags
-    tagBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        tagBtns.forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter || 'all';
-        performSearch(input.value);
-      });
-    });
-    // Set initial active tag
-    if (tagBtns[0]) tagBtns[0].classList.add('active');
 
     // Keyboard navigation
-    window.addEventListener('keydown', (e) => {
-      // Cmd+K or Ctrl+K or / to open search
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
-        if (modal.style.display === 'none' || !modal.classList.contains('open')) {
-          openModal();
-        } else {
-          closeModal();
+        if (currentResults.length > 0) {
+          updateActiveIndex((activeIndex + 1) % currentResults.length);
         }
-        return;
-      }
-
-      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        openModal();
-        return;
-      }
-
-      // If modal is open
-      if (modal.classList.contains('open')) {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          closeModal();
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          updateActiveIndex(activeIndex + 1);
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          updateActiveIndex(activeIndex - 1);
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          if (activeIndex >= 0 && currentResults[activeIndex]) {
-            jumpToTarget(currentResults[activeIndex].id);
-          }
+        if (currentResults.length > 0) {
+          updateActiveIndex((activeIndex - 1 + currentResults.length) % currentResults.length);
         }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIndex >= 0 && activeIndex < currentResults.length) {
+          jumpToTarget(currentResults[activeIndex].id);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
       }
     });
 
-    // Global trigger buttons (sidebar & page hero)
-    document.querySelectorAll('[data-action="open-search"]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+    // Close on backdrop or close button
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    // Global shortcut Cmd+K / Ctrl+K and /
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (modal.classList.contains('open')) {
+          closeModal();
+        } else {
+          openModal();
+        }
+      } else if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
         e.preventDefault();
         openModal();
-      });
+      }
+    });
+
+    // Trigger buttons
+    document.querySelectorAll('[data-action="open-search"]').forEach((btn) => {
+      btn.addEventListener('click', openModal);
     });
   })();
 </script>
