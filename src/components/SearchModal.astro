@@ -1,0 +1,418 @@
+---
+interface SearchItem {
+  id: string;
+  section: string;
+  title: string;
+  type: 'heading' | 'gotcha' | 'code' | 'text';
+  text: string;
+  snippet: string;
+}
+
+interface Props {
+  sheetName: string;
+  lang?: 'en' | 'zh';
+  searchIndex: SearchItem[];
+}
+
+const { sheetName, lang = 'en', searchIndex = [] } = Astro.props;
+
+const placeholder = lang === 'zh'
+  ? `搜索 ${sheetName} 速查表 (输入关键词如 堆、map、CAREFUL)...`
+  : `Search ${sheetName} sheet (e.g. heap, map, sort, careful)...`;
+
+const quickJumpTitle = lang === 'zh' ? '快速跳转章节' : 'Jump to section';
+const noResultsTitle = lang === 'zh' ? '未找到匹配结果' : 'No results found';
+const noResultsHint = lang === 'zh'
+  ? '尝试使用更通用的词汇，如“数组”、“哈希”、“排序”或“陷阱”'
+  : 'Try searching for general terms like "array", "heap", "sort", or "careful"';
+---
+
+<div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="Search cheat sheet" style="display: none;">
+  <div class="search-modal-backdrop" id="search-backdrop"></div>
+
+  <div class="search-modal-container">
+    <div class="search-modal-box">
+      <!-- Search Input Bar -->
+      <div class="search-input-header">
+        <svg class="search-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+
+        <input
+          id="search-input"
+          class="search-input"
+          type="search"
+          placeholder={placeholder}
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+
+        <button id="search-clear-btn" class="search-clear-btn" type="button" aria-label="Clear search" style="display: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <button id="search-close-btn" class="search-close-btn" type="button" aria-label="Close search">
+          <kbd class="search-esc-kbd">ESC</kbd>
+        </button>
+      </div>
+
+      <!-- Quick Filter Pills -->
+      <div class="search-filter-tags">
+        <button class="search-tag-btn" data-filter="all" type="button">{lang === 'zh' ? '全部' : 'All'}</button>
+        <button class="search-tag-btn" data-filter="gotcha" type="button">⚠️ {lang === 'zh' ? '避坑陷阱 (CAREFUL)' : 'Gotchas (CAREFUL)'}</button>
+        <button class="search-tag-btn" data-filter="code" type="button">&lt;/&gt; {lang === 'zh' ? '代码语法' : 'Code'}</button>
+        <button class="search-tag-btn" data-filter="heading" type="button"># {lang === 'zh' ? '章节结构' : 'Sections'}</button>
+      </div>
+
+      <!-- Search Results / Empty State -->
+      <div id="search-results-wrapper" class="search-results-wrapper">
+        <!-- Initial suggestions state -->
+        <div id="search-initial-view" class="search-initial-view">
+          <div class="search-view-title">{quickJumpTitle}</div>
+          <div class="search-quick-links" id="search-quick-links">
+            <!-- Populated dynamically from headings -->
+          </div>
+        </div>
+
+        <!-- Matching results list -->
+        <ul id="search-results-list" class="search-results-list" role="listbox" style="display: none;"></ul>
+
+        <!-- No results state -->
+        <div id="search-no-results" class="search-no-results" style="display: none;">
+          <div class="no-results-icon">🔍</div>
+          <div class="no-results-title">{noResultsTitle}</div>
+          <div class="no-results-hint">{noResultsHint}</div>
+        </div>
+      </div>
+
+      <!-- Search Modal Footer -->
+      <div class="search-modal-footer">
+        <div class="search-footer-stats" id="search-count-label"></div>
+        <div class="search-footer-shortcuts">
+          <span class="shortcut-item"><kbd>↑</kbd><kbd>↓</kbd> {lang === 'zh' ? '切换' : 'Navigate'}</span>
+          <span class="shortcut-item"><kbd>↵</kbd> {lang === 'zh' ? '选择' : 'Select'}</span>
+          <span class="shortcut-item"><kbd>ESC</kbd> {lang === 'zh' ? '关闭' : 'Close'}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Embedded JSON search index -->
+<script type="application/json" id="sheet-search-index" set:html={JSON.stringify(searchIndex)} />
+
+<script is:inline>
+  (function () {
+    const modal = document.getElementById('search-modal');
+    const backdrop = document.getElementById('search-backdrop');
+    const input = document.getElementById('search-input');
+    const clearBtn = document.getElementById('search-clear-btn');
+    const closeBtn = document.getElementById('search-close-btn');
+    const resultsWrapper = document.getElementById('search-results-wrapper');
+    const resultsList = document.getElementById('search-results-list');
+    const initialView = document.getElementById('search-initial-view');
+    const noResultsView = document.getElementById('search-no-results');
+    const countLabel = document.getElementById('search-count-label');
+    const quickLinksContainer = document.getElementById('search-quick-links');
+    const tagBtns = document.querySelectorAll('.search-tag-btn');
+
+    const indexElement = document.getElementById('sheet-search-index');
+    if (!indexElement || !modal) return;
+
+    let searchItems = [];
+    try {
+      searchItems = JSON.parse(indexElement.textContent || '[]');
+    } catch {
+      searchItems = [];
+    }
+
+    let activeIndex = -1;
+    let currentResults = [];
+    let currentFilter = 'all';
+
+    // Populate initial quick jump section links
+    if (quickLinksContainer) {
+      const headingItems = searchItems.filter((i) => i.type === 'heading');
+      headingItems.slice(0, 15).forEach((h) => {
+        const link = document.createElement('button');
+        link.type = 'button';
+        link.className = 'quick-link-chip';
+        link.textContent = h.title;
+        link.addEventListener('click', () => {
+          jumpToTarget(h.id);
+        });
+        quickLinksContainer.appendChild(link);
+      });
+    }
+
+    function openModal() {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        modal.classList.add('open');
+        input.focus();
+        input.select();
+      }, 10);
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }, 150);
+    }
+
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function highlightText(text, query) {
+      if (!query || !text) return text;
+      const terms = query.trim().split(/\s+/).filter(Boolean);
+      if (terms.length === 0) return text;
+      const pattern = new RegExp(`(${terms.map(escapeRegex).join('|')})`, 'gi');
+      return text.replace(pattern, '<mark class="search-hl">$1</mark>');
+    }
+
+    function performSearch(query) {
+      const q = query.trim().toLowerCase();
+      if (!q && currentFilter === 'all') {
+        initialView.style.display = 'block';
+        resultsList.style.display = 'none';
+        noResultsView.style.display = 'none';
+        countLabel.textContent = '';
+        currentResults = [];
+        activeIndex = -1;
+        return;
+      }
+
+      initialView.style.display = 'none';
+
+      let items = searchItems;
+      if (currentFilter !== 'all') {
+        items = items.filter((i) => i.type === currentFilter);
+      }
+
+      if (!q) {
+        currentResults = items.slice(0, 30);
+      } else {
+        const scored = [];
+        const terms = q.split(/\s+/).filter(Boolean);
+
+        for (const item of items) {
+          const titleLower = item.title.toLowerCase();
+          const textLower = (item.text || '').toLowerCase();
+          const sectionLower = (item.section || '').toLowerCase();
+          const snippetLower = (item.snippet || '').toLowerCase();
+
+          let score = 0;
+          let matched = true;
+
+          for (const term of terms) {
+            let termScore = 0;
+            if (titleLower === term) termScore += 100;
+            else if (titleLower.startsWith(term)) termScore += 60;
+            else if (titleLower.includes(term)) termScore += 40;
+
+            if (snippetLower.includes(term)) termScore += 30;
+            if (sectionLower.includes(term)) termScore += 25;
+            if (textLower.includes(term)) termScore += 15;
+
+            if (termScore === 0) {
+              matched = false;
+              break;
+            }
+            score += termScore;
+          }
+
+          if (matched && score > 0) {
+            if (item.type === 'gotcha') score += 10;
+            scored.push({ item, score });
+          }
+        }
+
+        scored.sort((a, b) => b.score - a.score);
+        currentResults = scored.map((s) => s.item).slice(0, 35);
+      }
+
+      renderResults(q);
+    }
+
+    function renderResults(query) {
+      resultsList.innerHTML = '';
+      if (currentResults.length === 0) {
+        resultsList.style.display = 'none';
+        noResultsView.style.display = 'block';
+        countLabel.textContent = '0 results';
+        activeIndex = -1;
+        return;
+      }
+
+      noResultsView.style.display = 'none';
+      resultsList.style.display = 'flex';
+      countLabel.textContent = `${currentResults.length} ${currentResults.length === 1 ? 'match' : 'matches'}`;
+      activeIndex = 0;
+
+      currentResults.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = `search-result-item ${index === activeIndex ? 'active' : ''}`;
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', index === activeIndex ? 'true' : 'false');
+        li.dataset.index = String(index);
+
+        let typeBadgeText = 'Code';
+        let typeBadgeClass = 'badge-code';
+        if (item.type === 'heading') {
+          typeBadgeText = 'Section';
+          typeBadgeClass = 'badge-section';
+        } else if (item.type === 'gotcha') {
+          typeBadgeText = '⚠️ CAREFUL';
+          typeBadgeClass = 'badge-gotcha';
+        }
+
+        const highlightedTitle = highlightText(item.title, query);
+        const highlightedSnippet = item.snippet && item.snippet !== item.title
+          ? highlightText(item.snippet, query)
+          : '';
+
+        li.innerHTML = `
+          <div class="result-item-header">
+            <span class="result-section">${item.section || ''}</span>
+            <span class="result-type-badge ${typeBadgeClass}">${typeBadgeText}</span>
+          </div>
+          <div class="result-item-title">${highlightedTitle}</div>
+          ${highlightedSnippet ? `<pre class="result-item-snippet"><code>${highlightedSnippet}</code></pre>` : ''}
+        `;
+
+        li.addEventListener('click', () => {
+          jumpToTarget(item.id);
+        });
+
+        li.addEventListener('mouseenter', () => {
+          updateActiveIndex(index);
+        });
+
+        resultsList.appendChild(li);
+      });
+    }
+
+    function updateActiveIndex(newIndex) {
+      const items = resultsList.querySelectorAll('.search-result-item');
+      if (items.length === 0) return;
+
+      if (activeIndex >= 0 && activeIndex < items.length) {
+        items[activeIndex].classList.remove('active');
+        items[activeIndex].setAttribute('aria-selected', 'false');
+      }
+
+      activeIndex = Math.max(0, Math.min(newIndex, items.length - 1));
+      items[activeIndex].classList.add('active');
+      items[activeIndex].setAttribute('aria-selected', 'true');
+      items[activeIndex].scrollIntoView({ block: 'nearest' });
+    }
+
+    function jumpToTarget(targetId) {
+      if (!targetId) return;
+      closeModal();
+
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Pulse highlight animation
+        el.classList.remove('search-pulse-target');
+        void el.offsetWidth; // trigger reflow
+        el.classList.add('search-pulse-target');
+        setTimeout(() => {
+          el.classList.remove('search-pulse-target');
+        }, 1800);
+      }
+
+      history.pushState(null, '', `#${targetId}`);
+    }
+
+    // Input event
+    input.addEventListener('input', (e) => {
+      const val = e.target.value;
+      clearBtn.style.display = val ? 'flex' : 'none';
+      performSearch(val);
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.style.display = 'none';
+      input.focus();
+      performSearch('');
+    });
+
+    // Close button and backdrop
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Filter tags
+    tagBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tagBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter || 'all';
+        performSearch(input.value);
+      });
+    });
+    // Set initial active tag
+    if (tagBtns[0]) tagBtns[0].classList.add('active');
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      // Cmd+K or Ctrl+K or / to open search
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (modal.style.display === 'none' || !modal.classList.contains('open')) {
+          openModal();
+        } else {
+          closeModal();
+        }
+        return;
+      }
+
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        openModal();
+        return;
+      }
+
+      // If modal is open
+      if (modal.classList.contains('open')) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          updateActiveIndex(activeIndex + 1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          updateActiveIndex(activeIndex - 1);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (activeIndex >= 0 && currentResults[activeIndex]) {
+            jumpToTarget(currentResults[activeIndex].id);
+          }
+        }
+      }
+    });
+
+    // Global trigger buttons (sidebar & page hero)
+    document.querySelectorAll('[data-action="open-search"]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+      });
+    });
+  })();
+</script>
