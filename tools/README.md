@@ -1,5 +1,7 @@
 # Codesheet checker
 
+**English** | [简体中文](README.zh-CN.md)
+
 Python 3.10+ and the standard library are the only host dependencies besides Docker.
 Run from the repository root:
 
