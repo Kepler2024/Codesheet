@@ -55,12 +55,12 @@ const tocTitle = lang === 'zh' ? '本页目录' : 'On This Page';
 
     <div class="toc-body" id="toc-collapse">
       <div class="toc-search-wrapper">
-        <button class="toc-search-btn" type="button" data-action="open-search" aria-label={lang === 'zh' ? '搜索速查表' : 'Search sheet'}>
+        <button class="toc-search-btn" type="button" data-action="open-search" aria-label={lang === 'zh' ? '搜索关键词' : 'Search keywords'}>
           <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <span class="toc-search-text">{lang === 'zh' ? '搜索速查表...' : 'Search sheet...'}</span>
+          <span class="toc-search-text">{lang === 'zh' ? '搜索关键词...' : 'Search keywords...'}</span>
           <kbd class="toc-search-kbd">⌘K</kbd>
         </button>
       </div>
