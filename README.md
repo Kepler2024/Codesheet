@@ -128,3 +128,7 @@ A new language also needs a checker adapter. See [Adding a new language](CONTRIB
 
 Inspired by NeetCode's [Python Cheat Sheet](https://neetcode.io/), which showed how much a short, code-first page can teach.
 
+## License
+
+[MIT](LICENSE)
+

@@ -2,6 +2,7 @@
   "name": "codesheet",
   "version": "1.0.0",
   "description": "Cheat sheets for picking up a new programming language fast",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",

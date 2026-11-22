@@ -129,3 +129,7 @@ print(-3 // 2)  # => -2
 
 本项目的灵感来自 NeetCode 的 [Python 速查表](https://neetcode.io/)。它用一页简短的代码示例讲清了许多常用写法。
 
+## 许可证
+
+[MIT](LICENSE)
+
