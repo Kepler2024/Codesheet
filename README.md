@@ -31,7 +31,6 @@ One page per language for LeetCode practice, quick onboarding, or refreshing rus
 
 </div>
 
-<!-- Screenshot placeholder: save a screenshot of https://codesheet.io as docs/images/website.png (about 1600 px wide). -->
 <p align="center">
   <a href="https://codesheet.io"><img src="docs/images/website.png" width="800" alt="Screenshot of the Codesheet website"></a>
 </p>

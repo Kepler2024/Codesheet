@@ -32,7 +32,6 @@
 
 </div>
 
-<!-- 截图占位：把 https://codesheet.io 的截图保存为 docs/images/website.png（宽约 1600 px）。 -->
 <p align="center">
   <a href="https://codesheet.io"><img src="docs/images/website.png" width="800" alt="Codesheet 网站截图"></a>
 </p>
