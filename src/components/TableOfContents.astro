@@ -54,6 +54,17 @@ const tocTitle = lang === 'zh' ? '本页目录' : 'On This Page';
     </div>
 
     <div class="toc-body" id="toc-collapse">
+      <div class="toc-search-wrapper">
+        <button class="toc-search-btn" type="button" data-action="open-search" aria-label={lang === 'zh' ? '搜索速查表' : 'Search sheet'}>
+          <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span class="toc-search-text">{lang === 'zh' ? '搜索速查表...' : 'Search sheet...'}</span>
+          <kbd class="toc-search-kbd">⌘K</kbd>
+        </button>
+      </div>
+
       <div class="desktop-toc-title">{tocTitle}</div>
 
       <ul class="toc-list">
@@ -81,8 +92,8 @@ const tocTitle = lang === 'zh' ? '本页目录' : 'On This Page';
       tocBody.classList.toggle('expanded');
     });
 
-    tocBody.querySelectorAll('.toc-link').forEach((link) => {
-      link.addEventListener('click', () => {
+    tocBody.querySelectorAll('.toc-link, .toc-search-btn').forEach((item) => {
+      item.addEventListener('click', () => {
         if (window.innerWidth <= 900) {
           toggleBtn.setAttribute('aria-expanded', 'false');
           tocBody.classList.remove('expanded');
