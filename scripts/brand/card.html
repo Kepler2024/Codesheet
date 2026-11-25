@@ -1,0 +1,90 @@
+<!doctype html>
+<!--
+  Source of the link preview card (public/og.png, public/og-zh.png).
+  Rendered at 1200x630 by scripts/brand/render.sh; open card.html?lang=zh for the Chinese card.
+-->
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background:
+      radial-gradient(900px 500px at 100% 0%, rgba(0, 122, 204, 0.22), transparent 60%),
+      #1e1e1e;
+    color: #d4d4d4;
+    padding: 64px 72px 56px;
+    display: flex;
+    flex-direction: column;
+  }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand img { width: 64px; height: 64px; }
+  .brand span { font-size: 40px; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; }
+
+  .main { flex: 1; display: flex; align-items: center; gap: 48px; }
+  .copy { flex: 1; min-width: 0; }
+  h1 { font-size: 56px; line-height: 1.12; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; }
+  h1 em { font-style: normal; color: #3794ff; }
+  p { margin-top: 22px; font-size: 28px; line-height: 1.45; color: #a8a8a8; }
+
+  .code {
+    width: 400px; flex-shrink: 0;
+    border: 1px solid #3a3a3a; border-radius: 16px; overflow: hidden;
+    background: #1b1b1b; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .code-head { padding: 12px 18px; background: #252526; border-bottom: 1px solid #333; font-size: 17px; font-weight: 600; color: #858585; }
+  pre { padding: 18px; font-size: 19px; line-height: 1.6; color: #d4d4d4; white-space: pre; }
+  .c { color: #6a9955; } .k { color: #c586c0; } .f { color: #dcdcaa; } .s { color: #ce9178; } .n { color: #b5cea8; } .v { color: #9cdcfe; }
+
+  .foot { display: flex; align-items: center; justify-content: space-between; }
+  .icons { display: flex; gap: 14px; }
+  .icons div {
+    width: 54px; height: 54px; border-radius: 12px;
+    background: #2a2a2b; border: 1px solid #3a3a3a;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icons img { width: 32px; height: 32px; }
+  .domain { font-size: 26px; font-weight: 600; color: #858585; }
+</style>
+</head>
+<body>
+  <div class="brand"><img src="../../public/logo.svg" alt="" /><span>Codesheet</span></div>
+
+  <div class="main">
+    <div class="copy">
+      <h1 id="title"></h1>
+      <p id="sub"></p>
+    </div>
+    <div class="code">
+      <div class="code-head">python</div>
+<pre><span class="v">nums</span> = [<span class="n">3</span>, <span class="n">1</span>, <span class="n">2</span>]
+<span class="v">nums</span>.<span class="f">sort</span>()
+<span class="f">print</span>(<span class="v">nums</span>)      <span class="c"># =&gt; [1, 2, 3]</span>
+<span class="f">print</span>(<span class="v">nums</span>[<span class="n">-1</span>])  <span class="c"># =&gt; 3</span></pre>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="icons" id="icons"></div>
+    <div class="domain">codesheet.io</div>
+  </div>
+
+<script>
+  const zh = new URLSearchParams(location.search).get('lang') === 'zh';
+  document.documentElement.lang = zh ? 'zh-CN' : 'en';
+  document.getElementById('title').innerHTML = zh
+    ? '编程语言<em>速查表</em>'
+    : 'Programming language<br /><em>cheat sheets</em>';
+  document.getElementById('sub').innerHTML = zh
+    ? '一门语言一页纸，代码优先。<br />每个示例都经过真实工具链验证。'
+    : 'One page per language, code first.<br />Every example verified by a real toolchain.';
+  const ids = ['python', 'javascript', 'typescript', 'java', 'cpp', 'csharp', 'go', 'rust', 'kotlin', 'swift'];
+  document.getElementById('icons').innerHTML = ids
+    .map((id) => `<div><img src="../../public/icons/${id}.svg" alt="" /></div>`)
+    .join('');
+</script>
+</body>
+</html>
