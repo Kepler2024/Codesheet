@@ -32,7 +32,9 @@ Codesheet 用 Astro 从同一仓库的 `sheets/*.md` 生成静态网站，再由
 | 合并到 `main` | 为该提交重新构建并检查，成功后将该次构建的 `dist/` 作为 Pages artifact 发布。失败时保留上一次成功部署。生成的 HTML 属于构建产物，贡献者只提交源文件。 |
 | 站点地址 | 用仓库的 Actions 变量 `SITE_URL` 和 `BASE_PATH` 决定站点地址，工作流把它们传给 Astro 的 `site` 和 `base`，验收脚本也读取同一个 `BASE_PATH`。绑定自定义域名时 `SITE_URL` 填完整的 HTTPS 域名，不设 `BASE_PATH`（默认 `/`），C++ 页位于 `/cpp/`。没有自定义域名时站点发布在 `https://<owner>.github.io/<repo>/`，设 `SITE_URL=https://<owner>.github.io`、`BASE_PATH=/<repo>`，C++ 页位于 `/<repo>/cpp/`。站内链接和 `public/` 资源一律用 `src/lib/paths.js` 的 `withBase()` 生成，不写死以 `/` 开头的路径。 |
 
-首次上线时，维护者在仓库 **Settings → Pages** 选择 **GitHub Actions**。改用自定义域名时，将 `SITE_URL` 改为该域名、删除 `BASE_PATH`，把主机名填入 **Custom domain**，再按域名类型配置 DNS。证书就绪后启用 **Enforce HTTPS**。后续修改 sheet 只需走正常合并流程。[Astro 部署指南](https://docs.astro.build/en/guides/deploy/github/) · [GitHub 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) · [GitHub 域名设置](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)
+首次上线时，维护者在仓库 **Settings → Pages** 选择 **GitHub Actions**。改用自定义域名时，将 `SITE_URL` 改为该域名、删除 `BASE_PATH`，把主机名填入 **Custom domain**，再按域名类型配置 DNS。证书就绪后启用 **Enforce HTTPS**。后续修改 sheet 只需走正常合并流程。
+
+本仓库的正式站点是 `https://codesheet.io/`，与工作流和 `astro.config.mjs` 的默认值一致，所以仓库不设 `SITE_URL` 和 `BASE_PATH`，只有 fork 发布到 github.io 时才需要设置。**Custom domain** 填 `codesheet.io`。域名托管在 Cloudflare，DNS 记录为：根域 `@` 的 A 记录指向 `185.199.108.153`、`185.199.109.153`、`185.199.110.153`、`185.199.111.153`，AAAA 记录指向 `2606:50c0:8000::153`、`2606:50c0:8001::153`、`2606:50c0:8002::153`、`2606:50c0:8003::153`，`www` 的 CNAME 指向 `kepler2024.github.io`。这些记录都设为 **DNS only**（不走 Cloudflare 代理），否则 GitHub 无法签发证书。`kepler2024.github.io/Codesheet/` 会自动跳转到正式域名。[Astro 部署指南](https://docs.astro.build/en/guides/deploy/github/) · [GitHub 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) · [GitHub 域名设置](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)
 
 ## 前端交付验收
 
