@@ -192,6 +192,38 @@ async function checkFrontend() {
     console.log(`  ✓ ${count} internal links and assets in ${htmlFiles.length} pages stay under "${BASE}/"`);
   }
 
+  // Check 8: icons and link-preview tags. Chat apps only fetch absolute og:image URLs,
+  // so every page needs one that resolves to an image in this build.
+  console.log('\n🔗 Verifying icons and link previews...');
+  for (const icon of ['favicon.ico', 'logo.svg', 'apple-touch-icon.png']) {
+    if (!fs.existsSync(path.join(DIST_DIR, icon))) {
+      console.error(`❌ Error: dist/${icon} is missing`);
+      process.exit(1);
+    }
+  }
+  const allPages = fs.readdirSync(DIST_DIR, { recursive: true }).filter((f) => f.endsWith('.html'));
+  const meta = (html, key) => html.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`))?.[1];
+  for (const file of allPages) {
+    const html = fs.readFileSync(path.join(DIST_DIR, file), 'utf-8');
+    for (const key of ['og:title', 'og:description', 'og:url', 'og:image', 'twitter:card']) {
+      if (!meta(html, key)) {
+        console.error(`❌ Error: dist/${file} is missing <meta ${key}>`);
+        process.exit(1);
+      }
+    }
+    const image = new URL(meta(html, 'og:image'));
+    if (image.protocol !== 'https:' && image.protocol !== 'http:') {
+      console.error(`❌ Error: dist/${file} og:image "${image.href}" is not an absolute URL`);
+      process.exit(1);
+    }
+    const imageFile = image.pathname.slice(BASE.length + 1);
+    if (!image.pathname.startsWith(`${BASE}/`) || !fs.existsSync(path.join(DIST_DIR, imageFile))) {
+      console.error(`❌ Error: dist/${file} og:image "${image.href}" does not match a file in dist/`);
+      process.exit(1);
+    }
+  }
+  console.log(`  ✓ Icons present; ${allPages.length} pages have Open Graph tags with an og:image in dist/`);
+
   console.log('\n✨ All frontend acceptance checks passed successfully!\n');
 }
 

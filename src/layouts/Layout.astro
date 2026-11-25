@@ -1,7 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { base } from '../lib/paths';
+import { base, withBase } from '../lib/paths';
 import '../styles/global.css';
 
 interface SheetSummary {
@@ -19,11 +19,21 @@ interface Props {
 
 const {
   title,
-  description = 'Cheat sheets for picking up a new programming language fast: one page per language, code first.',
+  description: rawDescription = 'Cheat sheets for picking up a new programming language fast: one page per language, code first.',
   sheets = [],
   currentId,
   lang = 'en',
 } = Astro.props;
+
+// Sheet intros are Markdown; drop inline-code backticks so search results and link previews read as plain text.
+const description = rawDescription.replace(/`/g, '');
+
+// Link previews need absolute URLs; Astro.site comes from SITE_URL (default https://codesheet.io).
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const imageUrl = new URL(withBase(lang === 'zh' ? '/og-zh.png' : '/og.png'), Astro.site).href;
+const imageAlt = lang === 'zh'
+  ? 'Codesheet：编程语言速查表，一门语言一页纸'
+  : 'Codesheet: programming language cheat sheets, one page per language';
 ---
 
 <!doctype html>
@@ -33,7 +43,27 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23007acc'/><text x='50' y='68' font-size='50' font-family='monospace' font-weight='bold' fill='white' text-anchor='middle'>&lt;/&gt;</text></svg>" />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
+    <link rel="icon" href={withBase('/logo.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+
+    <!-- Link previews in chat apps and social sites (Open Graph, Twitter/X card) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Codesheet" />
+    <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'en_US'} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
     <!-- Prevent flash of wrong theme -->
     <script is:inline>

@@ -21,6 +21,7 @@ Codesheet 用 Astro 从同一仓库的 `sheets/*.md` 生成静态网站，再由
 - **导览页 `/`** 由 `src/pages/index.astro` 生成。从构建时发现的 sheet 列出语言名、版本和指向 `/<id>/` 的普通链接。语言清单随文件的增加、改名或移除而更新。
 - **语言页 `/<id>/`** 共用 `src/pages/[id].astro`。用 `getStaticPaths()` 从同一批 sheet 枚举路径，生成 `dist/<id>/index.html`。页面显示一次标题和版本，保留引言、全部章节和示例，并提供章节锚点和返回导览的链接。[Astro 静态路由](https://docs.astro.build/en/guides/routing/#static-ssg-mode)
 - **编辑入口** 在每个语言页指向 `https://github.com/<owner>/<repo>/edit/<branch>/sheets/<id>.md`。仓库和默认分支来自统一配置或 Actions 上下文，文件路径来自本页源文件。直接访问、刷新语言页或关闭 JavaScript 时，正文、导航和编辑链接均可用。
+- **图标和链接预览** 由 `src/layouts/Layout.astro` 统一输出。图标为 `public/favicon.ico`、`public/logo.svg` 和 `public/apple-touch-icon.png`。每页带 Open Graph 和 Twitter 卡片标签：标题和描述与本页一致，`og:url` 和 `og:image` 用 `site` 加 `base` 拼成绝对地址，英文页用 `public/og.png`，中文页用 `public/og-zh.png`（1200×630）。这些图片由 `scripts/brand/render.sh` 从 `public/logo.svg` 和 `scripts/brand/*.html` 生成并提交，改动 logo 或卡片后重新运行。
 - **代码显示** 保留围栏内的缩进、空行、注释和源码字符，例如 `#include <iostream>`、`=>` 和 `CAREFUL:`。按第一个围栏标记选择高亮语言，缺少对应高亮器时显示纯文本。`text stdin` 是上一示例的输入，按原位置展示并标明用途。`norun` 和 `nocheck` 块也完整展示。网页构建只渲染示例，示例执行遵循贡献指南中的检查流程。
 
 ## 如何构建和发布
