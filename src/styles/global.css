@@ -1332,7 +1332,9 @@ html[data-theme="dark"] .lang-tile:hover {
 
 .footer-links {
   display: flex;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.25rem;
 }
 
 .footer-link:hover {
