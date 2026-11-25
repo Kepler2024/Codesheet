@@ -1343,6 +1343,10 @@ html[data-theme="dark"] .lang-tile:hover {
 @media (max-width: 900px) {
   .doc-layout {
     flex-direction: column;
+    /* Stretch children to the layout width. With flex-start, .doc-content
+       shrink-wraps its widest code block, so the block never scrolls and
+       html/body overflow-x: hidden clips the right side. */
+    align-items: stretch;
     gap: 1.25rem;
     padding: 0.75rem 0 3rem;
   }
