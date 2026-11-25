@@ -224,6 +224,69 @@ async function checkFrontend() {
   }
   console.log(`  ✓ Icons present; ${allPages.length} pages have Open Graph tags with an og:image in dist/`);
 
+  // Check 9: search engines. Every page declares itself canonical and names both language
+  // versions; the sitemap lists exactly the generated pages; robots.txt points to the sitemap.
+  console.log('\n🔎 Verifying canonical URLs, hreflang, sitemap and robots.txt...');
+  const pageUrlFor = (file) => {
+    const dir = path.dirname(file);
+    return dir === '.' ? `${BASE}/` : `${BASE}/${dir.split(path.sep).join('/')}/`;
+  };
+  const toDistPage = (url) => {
+    const { pathname } = new URL(url);
+    if (!pathname.startsWith(`${BASE}/`)) return null;
+    return path.join(pathname.slice(BASE.length + 1), 'index.html');
+  };
+  const linkHref = (html, attrs) => html.match(new RegExp(`<link ${attrs} href="([^"]*)"`))?.[1];
+  for (const file of allPages) {
+    const html = fs.readFileSync(path.join(DIST_DIR, file), 'utf-8');
+    const canonical = linkHref(html, 'rel="canonical"');
+    if (!canonical || new URL(canonical).pathname !== pageUrlFor(file) || canonical !== meta(html, 'og:url')) {
+      console.error(`❌ Error: dist/${file} canonical "${canonical}" should be this page's URL and match og:url`);
+      process.exit(1);
+    }
+    for (const lang of ['en', 'zh-CN', 'x-default']) {
+      const href = linkHref(html, `rel="alternate" hreflang="${lang}"`);
+      const target = href && toDistPage(href);
+      if (!target || !fs.existsSync(path.join(DIST_DIR, target))) {
+        console.error(`❌ Error: dist/${file} hreflang="${lang}" "${href}" does not match a page in dist/`);
+        process.exit(1);
+      }
+    }
+  }
+
+  const sitemapPath = path.join(DIST_DIR, 'sitemap.xml');
+  if (!fs.existsSync(sitemapPath)) {
+    console.error('❌ Error: dist/sitemap.xml is missing');
+    process.exit(1);
+  }
+  const listed = [...fs.readFileSync(sitemapPath, 'utf-8').matchAll(/<loc>([^<]*)<\/loc>/g)].map(([, url]) => url);
+  const listedPages = new Set(listed.map(toDistPage));
+  const generated = new Set(allPages);
+  for (const url of listed) {
+    if (!generated.has(toDistPage(url))) {
+      console.error(`❌ Error: dist/sitemap.xml lists ${url}, which has no page in dist/`);
+      process.exit(1);
+    }
+  }
+  for (const file of generated) {
+    if (!listedPages.has(file)) {
+      console.error(`❌ Error: dist/sitemap.xml does not list dist/${file}`);
+      process.exit(1);
+    }
+  }
+  if (listed.length !== listedPages.size) {
+    console.error('❌ Error: dist/sitemap.xml lists a page more than once');
+    process.exit(1);
+  }
+
+  const robotsPath = path.join(DIST_DIR, 'robots.txt');
+  const sitemapLine = fs.existsSync(robotsPath) && fs.readFileSync(robotsPath, 'utf-8').match(/^Sitemap: (\S+)$/m)?.[1];
+  if (!sitemapLine || new URL(sitemapLine).pathname !== `${BASE}/sitemap.xml`) {
+    console.error(`❌ Error: dist/robots.txt must contain "Sitemap: <absolute URL of ${BASE}/sitemap.xml>"`);
+    process.exit(1);
+  }
+  console.log(`  ✓ ${allPages.length} pages have canonical and hreflang links; sitemap lists all ${listed.length}; robots.txt points to it`);
+
   console.log('\n✨ All frontend acceptance checks passed successfully!\n');
 }
 

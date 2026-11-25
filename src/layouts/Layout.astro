@@ -1,7 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { base, withBase } from '../lib/paths';
+import { base, langPaths, withBase } from '../lib/paths';
 import '../styles/global.css';
 
 interface SheetSummary {
@@ -30,6 +30,12 @@ const description = rawDescription.replace(/`/g, '');
 
 // Link previews need absolute URLs; Astro.site comes from SITE_URL (default https://codesheet.io).
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+// The same page in the other language, for hreflang tags and the footer link.
+const paths = langPaths(Astro.url.pathname.slice(base.length) || '/');
+const enUrl = new URL(withBase(paths.en), Astro.site).href;
+const zhUrl = new URL(withBase(paths.zh), Astro.site).href;
+const otherLangHref = withBase(lang === 'zh' ? paths.en : paths.zh);
 const imageUrl = new URL(withBase(lang === 'zh' ? '/og-zh.png' : '/og.png'), Astro.site).href;
 const imageAlt = lang === 'zh'
   ? 'Codesheet：编程语言速查表，一门语言一页纸'
@@ -43,6 +49,11 @@ const imageAlt = lang === 'zh'
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="zh-CN" href={zhUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+    <link rel="sitemap" type="application/xml" href={withBase('/sitemap.xml')} />
     <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
     <link rel="icon" href={withBase('/logo.svg')} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
@@ -80,7 +91,7 @@ const imageAlt = lang === 'zh'
   <body>
     <Header sheets={sheets} currentId={currentId} lang={lang} />
     <slot />
-    <Footer lang={lang} />
+    <Footer lang={lang} otherLangHref={otherLangHref} />
     <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
     <script is:inline>
