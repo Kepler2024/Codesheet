@@ -4,8 +4,9 @@
 
 # Codesheet
 
-**The 2026 quick reference for developers coding in a new language.**
+**A lightweight 2026 quick reference for developers coding in a new language.**
 
+Easy to read, clearly sectioned, and friendly to newcomers.<br>
 One page per language for LeetCode practice, quick onboarding, or refreshing rusty syntax.<br>
 
 [![Check sheets](https://github.com/Kepler2024/Codesheet/actions/workflows/check.yml/badge.svg)](https://github.com/Kepler2024/Codesheet/actions/workflows/check.yml)
@@ -67,6 +68,7 @@ CI checks each of these answers against the real toolchain on every pull request
 
 ## Why Codesheet
 
+- **Lightweight.** Each language gets one short sheet with clear sections, instead of a thick manual. You can read it in one sitting and come away with what you need to start writing code.
 - **Code first.** A sheet is code with short comments that say why something works or where it bites. You won't find paragraphs of prose.
 - **Ideal for algorithm practice.** A sheet covers what you need to solve LeetCode-style problems, and it works as a quick reference when you come back to a language after a long break.
 - **One skeleton, multiple languages.** Every sheet has the same 15 sections in the same order, so you can open two side by side and compare how Java and Go handle heaps. A language that needs one more section gets it, such as Rust's *Ownership and Borrowing*.
@@ -77,7 +79,7 @@ CI checks each of these answers against the real toolchain on every pull request
 
 When I started practicing on NeetCode, I kept going back to the Python cheat sheet written by [@neetcode-gh](https://github.com/neetcode-gh). It covered the core syntax and the essential data structures in a remarkably compact, readable way. I soon found the format useful for much more than algorithm practice. It's the fastest way I know to get started in a new language, or to refresh one after a long break. But that sheet covers only Python.
 
-So I kept the format and took it further. Codesheet covers ten languages, and every sheet has the same 15 sections, so a new language reads like a page you already know, just in different syntax. CI compiles and runs every example against a pinned toolchain, so each output in a comment has been verified rather than written from memory. The `CAREFUL:` notes are written for people switching languages, and each one says exactly how this language differs from the ones you know. Every sheet also comes in both English and Chinese. I hope it saves you some time too.
+So I kept the format, short and easy to read, and took it further. Codesheet covers ten languages, and every sheet has the same 15 sections, so a new language reads like a page you already know, just in different syntax. CI compiles and runs every example against a pinned toolchain, so each output in a comment has been verified rather than written from memory. The `CAREFUL:` notes are written for people switching languages, and each one says exactly how this language differs from the ones you know. Every sheet also comes in both English and Chinese. I hope it saves you some time too.
 
 ## The sheets
 

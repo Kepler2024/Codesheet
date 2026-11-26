@@ -19,7 +19,7 @@ interface Props {
 
 const {
   title,
-  description: rawDescription = 'Cheat sheets for picking up a new programming language fast: one page per language, code first.',
+  description: rawDescription = 'Lightweight cheat sheets for picking up a new programming language fast: one page per language, code first.',
   sheets = [],
   currentId,
   lang = 'en',
@@ -38,8 +38,8 @@ const zhUrl = new URL(withBase(paths.zh), Astro.site).href;
 const otherLangHref = withBase(lang === 'zh' ? paths.en : paths.zh);
 const imageUrl = new URL(withBase(lang === 'zh' ? '/og-zh.png' : '/og.png'), Astro.site).href;
 const imageAlt = lang === 'zh'
-  ? 'Codesheet：编程语言速查表，一门语言一页纸'
-  : 'Codesheet: programming language cheat sheets, one page per language';
+  ? 'Codesheet：轻量编程语言速查表'
+  : 'Codesheet: lightweight programming language cheat sheets';
 ---
 
 <!doctype html>

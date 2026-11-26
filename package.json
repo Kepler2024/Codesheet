@@ -1,7 +1,7 @@
 {
   "name": "codesheet",
   "version": "1.0.0",
-  "description": "Cheat sheets for picking up a new programming language fast",
+  "description": "Lightweight cheat sheets for picking up a new programming language fast",
   "license": "MIT",
   "type": "module",
   "scripts": {
