@@ -1217,6 +1217,11 @@ html[data-theme="dark"] .shiki span {
   }
 }
 
+/* Hero text wraps only between phrases, so narrow screens never split a word or phrase. */
+.phrase {
+  display: inline-block;
+}
+
 .index-grid-section {
   width: 100%;
   padding: 0;
