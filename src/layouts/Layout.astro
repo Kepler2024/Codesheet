@@ -217,6 +217,17 @@ const imageAlt = lang === 'zh'
                   activeLink.style.color = 'var(--accent)';
                   activeLink.style.backgroundColor = 'var(--bg-secondary)';
                   activeLink.style.borderLeftColor = 'var(--accent)';
+                  const sidebar = document.querySelector('.doc-sidebar');
+                  if (sidebar && window.innerWidth > 900 && sidebar.scrollHeight > sidebar.clientHeight) {
+                    const sidebarRect = sidebar.getBoundingClientRect();
+                    const linkRect = activeLink.getBoundingClientRect();
+                    if (linkRect.top < sidebarRect.top || linkRect.bottom > sidebarRect.bottom) {
+                      sidebar.scrollTo({
+                        top: sidebar.scrollTop + (linkRect.top - sidebarRect.top) - sidebarRect.height / 2 + linkRect.height / 2,
+                        behavior: 'smooth',
+                      });
+                    }
+                  }
                 }
               }
             });
