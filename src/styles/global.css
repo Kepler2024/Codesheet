@@ -169,7 +169,7 @@ html {
   scroll-padding-top: calc(var(--header-height) + 1.5rem);
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
@@ -180,7 +180,7 @@ body {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
@@ -475,9 +475,11 @@ button {
   width: var(--sidebar-width);
   flex-shrink: 0;
   position: sticky;
-  top: calc(var(--header-height) + 1.5rem);
+  top: calc(var(--header-height) + 2rem);
   max-height: calc(100vh - var(--header-height) - 3rem);
+  max-height: calc(100dvh - var(--header-height) - 3rem);
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-right: 0.5rem;
 }
 
@@ -1348,11 +1350,15 @@ html[data-theme="dark"] .lang-tile:hover {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
+  html {
+    scroll-padding-top: calc(var(--header-height) + 4.5rem);
+  }
+
   .doc-layout {
     flex-direction: column;
     /* Stretch children to the layout width. With flex-start, .doc-content
        shrink-wraps its widest code block, so the block never scrolls and
-       html/body overflow-x: hidden clips the right side. */
+       html/body overflow-x: clip clips the right side. */
     align-items: stretch;
     gap: 1.25rem;
     padding: 0.75rem 0 3rem;
@@ -1367,6 +1373,7 @@ html[data-theme="dark"] .lang-tile:hover {
     border-bottom: 1px solid var(--border-color);
     padding: 0.5rem 0;
     max-height: none;
+    overflow-y: visible;
   }
 
   .toc-top-bar {
@@ -1432,6 +1439,7 @@ html[data-theme="dark"] .lang-tile:hover {
     display: block;
     max-height: 55vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     padding: 0.75rem 0.25rem 0.5rem;
     border-top: 1px solid var(--border-color);
